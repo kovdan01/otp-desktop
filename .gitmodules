@@ -1,0 +1,3 @@
+[submodule "cmake/ntc-cmake"]
+	path = cmake/ntc-cmake
+	url = https://github.com/kovdan01/ntc-cmake.git
