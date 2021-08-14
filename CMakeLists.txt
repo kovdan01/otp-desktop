@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
 
+# Interprocedural optimization
+cmake_policy(SET CMP0069 NEW)
+
 project(otp-desktop
     VERSION 0.0.0
     LANGUAGES CXX
@@ -23,7 +26,24 @@ find_package(
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui)
 
-add_executable(${PROJECT_NAME} main.cpp)
+set(HEADERS
+    include/main_window.hpp
+)
+
+set(SOURCES
+    src/main.cpp
+    src/main_window.cpp
+)
+
+set(UI_FILES
+    ui/main_window.ui
+)
+
+add_executable(${PROJECT_NAME}
+    ${HEADERS}
+    ${SOURCES}
+    ${UI_FILES}
+)
 
 target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
