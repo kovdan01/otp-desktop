@@ -19,6 +19,10 @@ find_package(Threads REQUIRED)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(oath REQUIRED IMPORTED_TARGET liboath)
 
+pkg_check_modules(crypto REQUIRED IMPORTED_TARGET libcrypto)
+
+find_package(yaml-cpp REQUIRED)
+
 find_package(
     Qt5 REQUIRED
     COMPONENTS Widgets LinguistTools Sql
@@ -27,12 +31,16 @@ find_package(
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui)
 
 set(HEADERS
+    include/crypto.hpp
     include/main_window.hpp
+    include/totp.hpp
 )
 
 set(SOURCES
+    src/crypto.cpp
     src/main.cpp
     src/main_window.cpp
+    src/totp.cpp
 )
 
 set(UI_FILES
@@ -49,6 +57,8 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::oath)
+target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::crypto)
+target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets)
 
 ntc_target(${PROJECT_NAME}
