@@ -1,4 +1,5 @@
 #include <main_window.hpp>
+#include <totp.hpp>
 
 #include <QApplication>
 
@@ -6,6 +7,8 @@
 
 int main(int argc, char* argv[]) try
 {
+    [[maybe_unused]] const auto& totp_singletone = otpd::TOTPSingleton::get_instance();
+
     QApplication application(argc, argv);
 
     otpd::MainWindow window;
