@@ -39,6 +39,7 @@ find_package(
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui)
 
 set(HEADERS
+    include/add_item_dialog.hpp
     include/crypto.hpp
     include/main_window.hpp
     include/otp_list.hpp
@@ -47,6 +48,7 @@ set(HEADERS
 )
 
 set(SOURCES
+    src/add_item_dialog.cpp
     src/crypto.cpp
     src/main.cpp
     src/main_window.cpp
@@ -56,6 +58,7 @@ set(SOURCES
 )
 
 set(UI_FILES
+    ui/add_item_dialog.ui
     ui/main_window.ui
 )
 
