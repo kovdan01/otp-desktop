@@ -5,8 +5,9 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
+#include <QTimer>
 
-#include <iostream>
+#include <chrono>
 
 Q_DECLARE_METATYPE(otpd::TOTP)
 
@@ -16,6 +17,8 @@ namespace otpd
 OTPListModel::OTPListModel(QObject* parent)
     : QAbstractListModel{parent}
 {
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    QTimer::singleShot(1000 - (now % 1000), this, &OTPListModel::timer_hit);
 }
 
 int OTPListModel::rowCount(const QModelIndex& /* index */) const
@@ -77,6 +80,19 @@ void OTPListModel::delete_item(const QModelIndex& index)
     std::vector<TOTP>& entries = OTPListSingleton::get_instance().entries();
     entries.erase(entries.begin() + row);
     emit dataChanged(index, index);
+}
+
+void OTPListModel::timer_hit()
+{
+    const std::vector<TOTP>& entries = OTPListSingleton::get_instance().entries();
+    if (!entries.empty())
+    {
+        QModelIndex first = this->index(0);
+        QModelIndex last = this->index(entries.size() - 1);
+        emit dataChanged(first, last);
+    }
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    QTimer::singleShot(1000 - (now % 1000), this, &OTPListModel::timer_hit);
 }
 
 OTPItemDelegate::OTPItemDelegate(QObject* parent)

@@ -21,6 +21,9 @@ public:
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
     void delete_item(const QModelIndex& index);
+
+private:
+    void timer_hit();
 };
 
 class OTPItemDelegate : public QStyledItemDelegate
