@@ -5,10 +5,17 @@
 #include <chrono>
 #include <cstring>
 #include <ctime>
+#include <iostream>
 #include <stdexcept>
 
 namespace otpd
 {
+
+static void check_oath_result(int res)
+{
+    if (res != 0)
+        throw std::runtime_error("OATH error " + std::string(oath_strerror(res)));
+}
 
 TOTPSingleton& TOTPSingleton::get_instance()
 {
@@ -18,18 +25,21 @@ TOTPSingleton& TOTPSingleton::get_instance()
 
 TOTPSingleton::TOTPSingleton()
 {
-    oath_init();
+    int res = oath_init();
+    check_oath_result(res);
 }
 
 TOTPSingleton::~TOTPSingleton()
 {
-    oath_done();
-}
-
-static void check_oath_result(int res)
-{
-    if (res != 0)
-        throw std::runtime_error("OATH error " + std::string(oath_strerror(res)));
+    int res = oath_done();
+    try
+    {
+        check_oath_result(res);
+    }
+    catch (const std::runtime_error& e)
+    {
+        std::cerr << e.what() << std::endl;
+    }
 }
 
 TOTP::TOTP(std::string issuer, std::string label, std::string secret_base32)

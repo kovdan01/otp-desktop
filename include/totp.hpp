@@ -13,9 +13,9 @@ class TOTPSingleton
 public:
     static TOTPSingleton& get_instance();
 
-    TOTPSingleton(const TOTPSingleton& root) = delete;
+    TOTPSingleton(const TOTPSingleton&) = delete;
     TOTPSingleton& operator=(const TOTPSingleton&) = delete;
-    TOTPSingleton(TOTPSingleton&& root) = delete;
+    TOTPSingleton(TOTPSingleton&&) = delete;
     TOTPSingleton& operator=(TOTPSingleton&&) = delete;
 
 private:
@@ -35,6 +35,7 @@ public:
         SHA512,
     };
 
+    TOTP() = default;  // for QVariant
     TOTP(std::string issuer, std::string label, std::string secret_base32);
 
     TOTP(const TOTP&) = default;
@@ -44,12 +45,22 @@ public:
 
     std::string generate() const;
 
+    const std::string& issuer() const
+    {
+        return m_issuer;
+    }
+
+    const std::string& label() const
+    {
+        return m_label;
+    }
+
 private:
     std::string m_issuer;
     std::string m_label;
     std::string m_secret_base32;
     std::vector<byte_t> m_secret;
-    unsigned m_period = 30;
+    unsigned m_period = 1;//30;
     unsigned m_digits = 6;
     Algorithm m_algorithm = Algorithm::SHA1;
 };
