@@ -30,9 +30,9 @@ public slots:
 
 private:
     QScopedPointer<Ui::MainWindow> m_ui{new Ui::MainWindow};
-    OTPListModel* m_model_otp_list{new OTPListModel{this}};
+    OTPListModel* m_otp_list_model{new OTPListModel{this}};
     OTPItemDelegate* m_otp_item_delegate;
-    AddItemDialog* m_add_item_dialog{new AddItemDialog{this}};
+    AddItemDialog* m_add_item_dialog;
 };
 
 }  // namespace otpd

@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QListView>
+#include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
 #include <QPushButton>
@@ -24,7 +25,6 @@ OTPListModel::OTPListModel(QObject* parent)
 int OTPListModel::rowCount(const QModelIndex& /* index */) const
 {
     return OTPListSingleton::get_instance().entries().size();
-    //return index.isValid() ? 0 : to_int(m_it_messages.size());
 }
 
 QVariant OTPListModel::data(const QModelIndex& index, int role) const
@@ -71,14 +71,36 @@ bool OTPListModel::setData(const QModelIndex& index, const QVariant& value, int 
     return false;
 }
 
+void OTPListModel::add_item(TOTP item)
+{
+    QModelIndex parent{};
+    int row = this->rowCount(parent) + 1;
+    this->beginInsertRows(parent, row, row);
+    auto& otp_list_singleton = OTPListSingleton::get_instance();
+    otp_list_singleton.entries().emplace_back(std::move(item));
+    try
+    {
+        otp_list_singleton.dump();
+    }
+    catch (const ParserException& e)
+    {
+        otp_list_singleton.entries().pop_back();
+        throw e;
+    }
+
+    this->endInsertRows();
+}
+
 void OTPListModel::delete_item(const QModelIndex& index)
 {
     if (!index.isValid())
         return;
 
     std::size_t row = static_cast<std::size_t>(index.row());
-    std::vector<TOTP>& entries = OTPListSingleton::get_instance().entries();
+    auto& otp_list_singleton = OTPListSingleton::get_instance();
+    std::vector<TOTP>& entries = otp_list_singleton.entries();
     entries.erase(entries.begin() + row);
+    otp_list_singleton.dump();
     emit dataChanged(index, index);
 }
 

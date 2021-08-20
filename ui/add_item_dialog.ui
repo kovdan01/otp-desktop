@@ -1,9 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <author/>
- <comment/>
- <exportmacro/>
  <class>AddItemDialog</class>
- <widget name="AddItemDialog" class="QDialog">
+ <widget class="QDialog" name="AddItemDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -15,24 +13,70 @@
   <property name="windowTitle">
    <string>Dialog</string>
   </property>
-  <widget name="buttonBox" class="QDialogButtonBox">
-   <property name="geometry">
-    <rect>
-     <x>30</x>
-     <y>240</y>
-     <width>341</width>
-     <height>32</height>
-    </rect>
-   </property>
-   <property name="orientation">
-    <enum>Qt::Horizontal</enum>
-   </property>
-   <property name="standardButtons">
-    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
-   </property>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QGridLayout" name="gridLayout">
+     <item row="2" column="2">
+      <widget class="QLineEdit" name="secret_base32_line_edit"/>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLineEdit" name="issuer_line_edit"/>
+     </item>
+     <item row="0" column="0">
+      <widget class="QLabel" name="issuer_label">
+       <property name="text">
+        <string>Issuer</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_label">
+       <property name="text">
+        <string>Label</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="secret_base32_label">
+       <property name="text">
+        <string>Secret (base32)</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QLineEdit" name="label_line_edit"/>
+     </item>
+     <item row="3" column="0">
+      <widget class="QLabel" name="period_label">
+       <property name="text">
+        <string>Period</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="2">
+      <widget class="QLineEdit" name="period_line_edit">
+       <property name="inputMask">
+        <string/>
+       </property>
+       <property name="text">
+        <string>30</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
- <pixmapfunction/>
  <resources/>
  <connections>
   <connection>

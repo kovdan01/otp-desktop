@@ -4,10 +4,18 @@
 #include <totp.hpp>
 
 #include <filesystem>
+#include <stdexcept>
 #include <vector>
 
 namespace otpd
 {
+
+class ParserException : public std::runtime_error
+{
+public:
+    using std::runtime_error::runtime_error;
+    ~ParserException() override;
+};
 
 class OTPListSingleton
 {
@@ -28,6 +36,9 @@ public:
     {
         return m_entries;
     }
+
+    void load();
+    void dump() const;
 
 private:
     OTPListSingleton();

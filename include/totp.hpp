@@ -1,12 +1,20 @@
 #ifndef OTP_DESKTOP_TOTP_HPP_
 #define OTP_DESKTOP_TOTP_HPP_
 
+#include <stdexcept>
 #include <string>
 #include <utility>
 #include <vector>
 
 namespace otpd
 {
+
+class TOTPException : public std::runtime_error
+{
+public:
+    using std::runtime_error::runtime_error;
+    ~TOTPException() override;
+};
 
 class TOTPSingleton
 {
@@ -36,7 +44,7 @@ public:
     };
 
     TOTP() = default;  // for QVariant
-    TOTP(std::string issuer, std::string label, std::string secret_base32);
+    TOTP(std::string issuer, std::string label, std::string secret_base32, unsigned period = 30);
 
     TOTP(const TOTP&) = default;
     TOTP& operator=(const TOTP&) = default;
@@ -55,12 +63,22 @@ public:
         return m_label;
     }
 
+    const std::string& secret_base32() const
+    {
+        return m_secret_base32;
+    }
+
+    unsigned period() const
+    {
+        return m_period;
+    }
+
 private:
     std::string m_issuer;
     std::string m_label;
     std::string m_secret_base32;
     std::vector<byte_t> m_secret;
-    unsigned m_period = 1;//30;
+    unsigned m_period;
     unsigned m_digits = 6;
     Algorithm m_algorithm = Algorithm::SHA1;
 };

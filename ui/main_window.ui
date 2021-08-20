@@ -19,10 +19,10 @@
    </property>
    <layout class="QVBoxLayout" name="verticalLayout_3">
     <item>
-     <widget class="QListView" name="OTPListView"/>
+     <widget class="QListView" name="otp_list_view"/>
     </item>
     <item>
-     <widget class="QPushButton" name="AddItemButton">
+     <widget class="QPushButton" name="add_item_button">
       <property name="text">
        <string>Add Item</string>
       </property>

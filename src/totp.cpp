@@ -2,19 +2,21 @@
 
 #include <oath.h>
 
+#include <cassert>
 #include <chrono>
 #include <cstring>
 #include <ctime>
-#include <iostream>
 #include <stdexcept>
 
 namespace otpd
 {
 
+TOTPException::~TOTPException() = default;
+
 static void check_oath_result(int res)
 {
     if (res != 0)
-        throw std::runtime_error("OATH error " + std::string(oath_strerror(res)));
+        throw TOTPException("OATH error: \"" + std::string(oath_strerror(res)) + "\"");
 }
 
 TOTPSingleton& TOTPSingleton::get_instance()
@@ -36,16 +38,17 @@ TOTPSingleton::~TOTPSingleton()
     {
         check_oath_result(res);
     }
-    catch (const std::runtime_error& e)
+    catch (const TOTPException& e)
     {
-        std::cerr << e.what() << std::endl;
+        assert(false);
     }
 }
 
-TOTP::TOTP(std::string issuer, std::string label, std::string secret_base32)
+TOTP::TOTP(std::string issuer, std::string label, std::string secret_base32, unsigned period)
     : m_issuer(std::move(issuer))
     , m_label(std::move(label))
     , m_secret_base32(std::move(secret_base32))
+    , m_period(period)
 {
     char* out;
     std::size_t out_len;

@@ -20,6 +20,7 @@ public:
     [[nodiscard]] QVariant data(const QModelIndex& index, int role) const override;
     bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
+    void add_item(TOTP item);
     void delete_item(const QModelIndex& index);
 
 private:
