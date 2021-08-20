@@ -16,9 +16,6 @@
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="2" column="2">
-      <widget class="QLineEdit" name="secret_base32_line_edit"/>
-     </item>
      <item row="0" column="2">
       <widget class="QLineEdit" name="issuer_line_edit"/>
      </item>
@@ -53,15 +50,11 @@
        </property>
       </widget>
      </item>
+     <item row="2" column="2">
+      <widget class="QLineEdit" name="secret_base32_line_edit"/>
+     </item>
      <item row="3" column="2">
-      <widget class="QLineEdit" name="period_line_edit">
-       <property name="inputMask">
-        <string/>
-       </property>
-       <property name="text">
-        <string>30</string>
-       </property>
-      </widget>
+      <widget class="QLineEdit" name="period_line_edit"/>
      </item>
     </layout>
    </item>

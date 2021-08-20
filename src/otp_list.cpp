@@ -39,7 +39,8 @@ void OTPListSingleton::load() try
         YAML::Node element = settings[i];
         entries_temp.emplace_back(element["issuer"].as<std::string>(),
                                   element["label"].as<std::string>(),
-                                  element["secret_base32"].as<std::string>());
+                                  element["secret_base32"].as<std::string>(),
+                                  element["period"].as<unsigned>());
     }
     m_entries.swap(entries_temp);
 }
@@ -57,6 +58,7 @@ void OTPListSingleton::dump() const try
         item["issuer"] = entry.issuer();
         item["label"] = entry.label();
         item["secret_base32"] = entry.secret_base32();
+        item["period"] = entry.period();
         settings.push_back(item);
     }
     std::ofstream(m_settings_path) << YAML::Dump(settings);

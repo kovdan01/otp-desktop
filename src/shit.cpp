@@ -5,6 +5,7 @@
 #include <QMessageBox>
 #include <QMouseEvent>
 #include <QPainter>
+#include <QProgressBar>
 #include <QPushButton>
 #include <QTimer>
 
@@ -125,6 +126,7 @@ OTPItemDelegate::OTPItemDelegate(QObject* parent)
 QRect create_label_rect(const QStyleOptionViewItem& option)
 {
     QRect label_rect = option.rect;
+    label_rect.setY(label_rect.y() + 10);
     label_rect.setWidth(150);
     label_rect.setHeight(30);
     return label_rect;
@@ -134,6 +136,7 @@ QRect create_otp_rect(const QStyleOptionViewItem& option)
 {
     QRect otp_rect = option.rect;
     otp_rect.setX(otp_rect.x() + 150);
+    otp_rect.setY(otp_rect.y() + 10);
     otp_rect.setWidth(150);
     otp_rect.setHeight(30);
     return otp_rect;
@@ -143,9 +146,18 @@ QRect create_delete_button_rect(const QStyleOptionViewItem& option)
 {
     QRect delete_button_rect(option.rect);
     delete_button_rect.setX(delete_button_rect.x() + 300);
+    delete_button_rect.setY(delete_button_rect.y() + 10);
     delete_button_rect.setWidth(100);
     delete_button_rect.setHeight(30);
     return delete_button_rect;
+}
+
+QRect create_progress_bar_rect(const QStyleOptionViewItem& option)
+{
+    QRect progress_bar_rect(option.rect);
+    progress_bar_rect.setWidth(400);
+    progress_bar_rect.setHeight(10);
+    return progress_bar_rect;
 }
 
 QStyleOptionButton create_delete_button(const QRect& delete_button_rect)
@@ -156,16 +168,35 @@ QStyleOptionButton create_delete_button(const QRect& delete_button_rect)
     return delete_button;
 }
 
+QStyleOptionProgressBar create_progress_bar(const QRect& progress_bar_rect, double progress)
+{
+    QStyleOptionProgressBar progress_bar;
+    progress_bar.rect = progress_bar_rect;
+    progress_bar.minimum = 0;
+    progress_bar.maximum = progress_bar_rect.width();
+    progress_bar.progress = progress * progress_bar.maximum;
+    return progress_bar;
+}
+
 void OTPItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const
 {
+    TOTP totp = index.data(Qt::DisplayRole).value<TOTP>();
+
     QRect label_rect = create_label_rect(option);
     QRect otp_rect = create_otp_rect(option);
+
     QRect delete_button_rect = create_delete_button_rect(option);
     QStyleOptionButton delete_button = create_delete_button(delete_button_rect);
     delete_button.state = m_state | QStyle::State_Enabled;
     QApplication::style()->drawControl(QStyle::CE_PushButton, &delete_button, painter);
 
-    TOTP totp = index.data(Qt::DisplayRole).value<TOTP>();
+    unsigned period = totp.period();
+    auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+    double progress = static_cast<double>(period - (now % period)) / period;
+    QRect progress_bar_rect = create_progress_bar_rect(option);
+    QStyleOptionProgressBar progress_bar = create_progress_bar(progress_bar_rect, progress);
+    QApplication::style()->drawControl(QStyle::CE_ProgressBar, &progress_bar, painter);
+
     const std::string& label = totp.label();
     painter->drawText(label_rect, QString::fromStdString(label));
     std::string otp = totp.generate();
@@ -175,7 +206,7 @@ void OTPItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& optio
 QSize OTPItemDelegate::sizeHint(const QStyleOptionViewItem& /* option */, const QModelIndex& /* index */) const
 {
     const auto* p = qobject_cast<QListView*>(this->parent());
-    return QSize(p->viewport()->size().width(), 30);
+    return QSize(p->viewport()->size().width(), 40);
 }
 
 bool OTPItemDelegate::editorEvent(
