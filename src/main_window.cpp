@@ -10,6 +10,8 @@ MainWindow::MainWindow(QWidget* parent)
     , m_add_item_dialog{new AddItemDialog{this, m_otp_list_model}}
 {
     m_ui->setupUi(this);
+    this->setFixedSize(600, 480);
+    m_add_item_dialog->setFixedSize(480, 240);
 
     m_ui->otp_list_view->setModel(m_otp_list_model);
     m_otp_item_delegate = new OTPItemDelegate{m_ui->otp_list_view};

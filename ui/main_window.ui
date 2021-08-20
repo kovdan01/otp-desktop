@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>OTP generator</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <property name="mouseTracking">
@@ -24,7 +24,7 @@
     <item>
      <widget class="QPushButton" name="add_item_button">
       <property name="text">
-       <string>Add Item</string>
+       <string>Add OTP item</string>
       </property>
      </widget>
     </item>
