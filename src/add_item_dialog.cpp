@@ -1,6 +1,7 @@
 #include <add_item_dialog.hpp>
 #include <otp_list.hpp>
 
+#include <QFont>
 #include <QMessageBox>
 #include <QValidator>
 
@@ -14,7 +15,12 @@ AddItemDialog::AddItemDialog(QWidget* parent, OTPListModel* model)
     , m_otp_list_model{model}
 {
     m_ui->setupUi(this);
+    this->setFixedSize(480, 240);
     m_ui->period_line_edit->setValidator(new QIntValidator(1, 30000, m_ui->period_line_edit));
+    QFont secret_base32_font = font();
+    secret_base32_font.setCapitalization(QFont::AllUppercase);
+    secret_base32_font.setFamily(QStringLiteral("Noto Sans Mono Medium"));
+    m_ui->secret_base32_line_edit->setFont(secret_base32_font);
 }
 
 void AddItemDialog::clear_content()

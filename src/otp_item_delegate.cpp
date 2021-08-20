@@ -122,7 +122,7 @@ void OTPItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& optio
     std::string otp = totp.generate();
     QFont otp_font;
     otp_font.setBold(true);
-    otp_font.setFamily(QStringLiteral("DejaVu Sans Mono"));
+    otp_font.setFamily(QStringLiteral("Noto Sans Mono Medium"));
     otp_font.setLetterSpacing(QFont::PercentageSpacing, 200);
     painter->setFont(otp_font);
     painter->drawText(otp_rect, Qt::AlignVCenter | Qt::AlignHCenter, totp.visible ? QString::fromStdString(otp) : QStringLiteral("******"));
