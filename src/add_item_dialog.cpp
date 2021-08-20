@@ -2,6 +2,7 @@
 #include <otp_list.hpp>
 
 #include <QMessageBox>
+#include <QValidator>
 
 #include <string>
 

@@ -2,7 +2,8 @@
 #define OTP_DESKTOP_MAIN_WINDOW_HPP_
 
 #include <add_item_dialog.hpp>
-#include <shit.hpp>
+#include <otp_item_delegate.hpp>
+#include <otp_list_model.hpp>
 #include <ui_main_window.h>
 
 #include <QMainWindow>

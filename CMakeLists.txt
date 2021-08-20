@@ -42,8 +42,9 @@ set(HEADERS
     include/add_item_dialog.hpp
     include/crypto.hpp
     include/main_window.hpp
+    include/otp_item_delegate.hpp
     include/otp_list.hpp
-    include/shit.hpp
+    include/otp_list_model.hpp
     include/totp.hpp
 )
 
@@ -52,8 +53,9 @@ set(SOURCES
     src/crypto.cpp
     src/main.cpp
     src/main_window.cpp
+    src/otp_item_delegate.cpp
     src/otp_list.cpp
-    src/shit.cpp
+    src/otp_list_model.cpp
     src/totp.cpp
 )
 

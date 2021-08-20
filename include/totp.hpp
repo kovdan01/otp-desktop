@@ -1,6 +1,8 @@
 #ifndef OTP_DESKTOP_TOTP_HPP_
 #define OTP_DESKTOP_TOTP_HPP_
 
+#include <QMetaType>
+
 #include <stdexcept>
 #include <string>
 #include <utility>
@@ -84,5 +86,7 @@ private:
 };
 
 }  // namespace otpd
+
+Q_DECLARE_METATYPE(otpd::TOTP)
 
 #endif  // OTP_DESKTOP_TOTP_HPP_

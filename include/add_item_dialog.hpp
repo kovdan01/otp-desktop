@@ -2,7 +2,7 @@
 #define OTP_DESKTOP_ADD_ITEM_DIALOG_HPP_
 
 #include <ui_add_item_dialog.h>
-#include <shit.hpp>
+#include <otp_list_model.hpp>
 
 #include <QDialog>
 
