@@ -26,7 +26,8 @@ public:
     ~MainWindow() override = default;
 
 public slots:
-    void list_button_clicked(const QModelIndex& index);
+    void show_hide_button_clicked(const QModelIndex& index);
+    void delete_button_clicked(const QModelIndex& index);
     void add_item_button_clicked();
 
 private:

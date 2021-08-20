@@ -75,6 +75,8 @@ public:
         return m_period;
     }
 
+    bool visible = false;
+
 private:
     std::string m_issuer;
     std::string m_label;

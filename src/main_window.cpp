@@ -1,4 +1,5 @@
 #include <main_window.hpp>
+#include <otp_list.hpp>
 
 #include <QMessageBox>
 
@@ -18,9 +19,14 @@ MainWindow::MainWindow(QWidget* parent)
     m_ui->otp_list_view->setItemDelegate(m_otp_item_delegate);
 
     connect(m_otp_item_delegate,
+            &OTPItemDelegate::show_hide_button_clicked,
+            this,
+            &MainWindow::show_hide_button_clicked);
+
+    connect(m_otp_item_delegate,
             &OTPItemDelegate::delete_button_clicked,
             this,
-            &MainWindow::list_button_clicked);
+            &MainWindow::delete_button_clicked);
 
     connect(m_ui->add_item_button,
             &QPushButton::clicked,
@@ -38,9 +44,14 @@ MainWindow::MainWindow(QWidget* parent)
     }
 }
 
-void MainWindow::list_button_clicked(const QModelIndex& index)
+void MainWindow::delete_button_clicked(const QModelIndex& index)
 {
     m_otp_list_model->delete_item(index);
+}
+
+void MainWindow::show_hide_button_clicked(const QModelIndex &index)
+{
+    m_otp_list_model->change_visibility(index);
 }
 
 void MainWindow::add_item_button_clicked()

@@ -1,4 +1,5 @@
 #include <otp_list_model.hpp>
+#include <otp_list.hpp>
 
 #include <QApplication>
 #include <QListView>
@@ -96,6 +97,16 @@ void OTPListModel::delete_item(const QModelIndex& index)
     std::vector<TOTP>& entries = otp_list_singleton.entries();
     entries.erase(entries.begin() + row);
     otp_list_singleton.dump();
+    emit dataChanged(index, index);
+}
+
+void OTPListModel::change_visibility(const QModelIndex &index)
+{
+    if (!index.isValid())
+        return;
+
+    std::size_t row = static_cast<std::size_t>(index.row());
+    OTPListSingleton::get_instance().entries()[row].visible ^= 1;
     emit dataChanged(index, index);
 }
 

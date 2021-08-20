@@ -3,6 +3,8 @@
 
 #include <QStyledItemDelegate>
 
+#include <map>
+
 namespace otpd
 {
 
@@ -20,10 +22,12 @@ public:
                      const QModelIndex& index) override;
 
 signals:
+    void show_hide_button_clicked(const QModelIndex& index);
     void delete_button_clicked(const QModelIndex& index);
 
 private:
-    QStyle::State m_state;
+    std::map<int, QStyle::State> m_show_hide_button_states;
+    std::map<int, QStyle::State> m_delete_button_states;
 };
 
 }  // namespace otpd

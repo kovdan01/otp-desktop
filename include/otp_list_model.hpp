@@ -1,7 +1,7 @@
 #ifndef OTP_DESKTOP_OTP_LIST_MODEL_HPP_
 #define OTP_DESKTOP_OTP_LIST_MODEL_HPP_
 
-#include <otp_list.hpp>
+#include <totp.hpp>
 
 #include <QAbstractListModel>
 
@@ -21,6 +21,7 @@ public:
 
     void add_item(TOTP item);
     void delete_item(const QModelIndex& index);
+    void change_visibility(const QModelIndex& index);
 
 private:
     void timer_hit();
