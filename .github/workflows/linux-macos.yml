@@ -11,12 +11,8 @@ jobs:
     name: ${{ format('{0} {1} {2}', matrix.config.prefix, matrix.config.build_type, matrix.config.suffix) }}
     runs-on: ${{ matrix.config.os }}
     env:
-      #CMAKE_TOOL_VERSION: "3.19.1"
-      #CMAKE_TOOL_PATH: "cmake-tool"
-      #NINJA_TOOL_VERSION: "1.10.2"
-      #NINJA_TOOL_PATH: "ninja-tool"
       YAML_CPP_VERSION: "0.6.3"
-      QT_SHORT_VERSION: "5.15"
+      LIBOATH_VERSION: "2.6.7"
       QT_VERSION: "5.15.2"
     strategy:
       fail-fast: false
@@ -31,42 +27,6 @@ jobs:
             cc: "gcc",
             cxx: "g++",
           }
-        #- {
-            #os: "ubuntu-latest",
-            #prefix: "Linux",
-            #suffix: "CodeQL",
-            #artifact: "",
-            #build_type: "Debug",
-            #cc: "gcc",
-            #cxx: "g++",
-          #}
-        #- {
-            #os: "ubuntu-latest",
-            #prefix: "Linux",
-            #suffix: "PVS-Studio",
-            #artifact: "all-debug-linux",
-            #build_type: "Debug",
-            #cc: "gcc",
-            #cxx: "g++",
-          #}
-        #- {
-            #os: "ubuntu-latest",
-            #prefix: "Linux",
-            #suffix: "clang-tidy",
-            #artifact: "",
-            #build_type: "Debug",
-            #cc: "gcc",
-            #cxx: "g++",
-          #}
-        #- {
-            #os: "macos-latest",
-            #prefix: "macOS",
-            #suffix: "",
-            #artifact: "all-release-macos",
-            #build_type: "Release",
-            #cc: "/usr/local/opt/llvm/bin/clang",
-            #cxx: "/usr/local/opt/llvm/bin/clang++",
-          #}
 
     steps:
     - uses: actions/checkout@v2
@@ -136,6 +96,20 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: python3 ci/libs/yaml_cpp.py
 
+    - name: LibOATH cache
+      uses: actions/cache@v2
+      id: cache_liboath_unix
+      with:
+        path: ${{ env.REPO_PATH }}/.deps/oath-toolkit-${{ env.LIBOATH_VERSION }}
+        key: ${{ runner.os }}-liboath-${{ env.LIBOATH_VERSION }}
+
+    - name: LibOATH
+      if: ${{ steps.cache_liboath_unix.outputs.cache-hit != 'true' }}
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: python3 ci/libs/liboath.py
+
     - name: Qt5 cache
       uses: actions/cache@v2
       id: cache_qt_unix
@@ -170,15 +144,10 @@ jobs:
         builder = load_builder()
         qt5base_prefix = self.get_prefix("qt5base")
         yaml_cpp_prefix = self.get_prefix("yaml-cpp")
+        liboath_prefix = self.get_prefix("liboath")
         builder.build_cmake(source_dir=repo,
-                            cmake_params='-D CMAKE_PREFIX_PATH="{};{}"'.format(qt5base_prefix, yaml_cpp_prefix))
+                            cmake_params='-D CMAKE_PREFIX_PATH="{};{};{}"'.format(qt5base_prefix, yaml_cpp_prefix, liboath_prefix))
         save_builder(builder)
-
-    - name: Initialize CodeQL
-      if: ${{ matrix.config.suffix == 'CodeQL' }}
-      uses: github/codeql-action/init@v1
-      with:
-        languages: cpp
 
     - name: Build
       env:
@@ -186,25 +155,8 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: cmake --build build --target all
 
-    - name: Perform CodeQL Analysis
-      if: ${{ matrix.config.suffix == 'CodeQL' }}
-      uses: github/codeql-action/analyze@v1
-
     - name: Install Strip
       run: cmake --install build --prefix install --strip
-
-    - name: Mac Deploy Qt
-      if: ${{ runner.os == 'macOS' }}
-      shell: sh {0}
-      run: |
-        ${{ env.ROOT_PATH }}/${{ env.QT_INSTALL_PATH }}/bin/macdeployqt install/bin/melon-client-desktop.app
-
-    - name: Copy required dylibs
-      if: ${{ runner.os == 'macOS' }}
-      shell: sh {0}
-      run: |
-        cp ${{ env.ROOT_PATH }}/${{ env.CYRUS_SASL_INSTALL_PATH }}/lib/libsasl2.3.dylib install/bin/libsasl2.3.dylib
-        install_name_tool -change ${{ env.ROOT_PATH }}/${{ env.CYRUS_SASL_INSTALL_PATH }}/lib/libsasl2.3.dylib @executable_path/libsasl2.3.dylib install/bin/melon-auth
 
     - name: Tar files
       run: tar -cvf install.tar ./install
@@ -215,57 +167,3 @@ jobs:
       with:
         path: ./install.tar
         name: ${{ matrix.config.artifact }}
-
-    - name: Prepare to run static analysis
-      if: ${{ matrix.config.suffix == 'PVS-Studio' || matrix.config.suffix == 'clang-tidy' }}
-      run: mkdir reports
-
-    - name: Install clang-tidy
-      if: ${{ matrix.config.suffix == 'clang-tidy' }}
-      run: |
-        sudo apt install clang-tidy-11 -y
-        sudo update-alternatives --install /usr/bin/clang-tidy      clang-tidy      /usr/bin/clang-tidy-11     100
-        sudo update-alternatives --install /usr/bin/run-clang-tidy  run-clang-tidy  /usr/bin/run-clang-tidy-11 100
-
-    - name: Run clang-tidy
-      if: ${{ matrix.config.suffix == 'clang-tidy' }}
-      run: run-clang-tidy -p=build -j=2 2>&1 | tee reports/clang-tidy-report.log
-
-    - name: Install PVS-Studio
-      if: ${{ matrix.config.suffix == 'PVS-Studio' }}
-      shell: sh {0}
-      run: |
-        wget -q -O - https://files.viva64.com/etc/pubkey.txt | sudo apt-key add -
-        sudo wget -O /etc/apt/sources.list.d/viva64.list https://files.viva64.com/etc/viva64.list
-        sudo apt-get update
-        sudo apt-get install pvs-studio
-
-    - name: Run PVS-Studio
-      if: ${{ matrix.config.suffix == 'PVS-Studio' }}
-      env:
-        PVS_NAME: ${{ secrets.PVS_NAME }}
-        PVS_KEY: ${{ secrets.PVS_KEY }}
-      shell: sh {0}
-      run: |
-        pvs-studio-analyzer credentials $PVS_NAME $PVS_KEY
-        pvs-studio-analyzer analyze -e *melon/build/src* -j2 -f build/compile_commands.json
-        plog-converter -t fullhtml -o reports/pvs-report -a GA:1,2,3 PVS-Studio.log
-
-    - name: Upload static analysis results
-      if: ${{ matrix.config.suffix == 'PVS-Studio' || matrix.config.suffix == 'clang-tidy' }}
-      uses: actions/upload-artifact@v2
-      with:
-        path: ./reports
-        name: static-analyzer-reports
-
-    - name: Fail if clang-tidy found warnings
-      if: ${{ matrix.config.suffix == 'clang-tidy' }}
-      shell: sh {0}
-      run: |
-        cat reports/clang-tidy-report.log | grep -E 'warning: |error: ' | grep -v 'melon/build/src\|autogen\|-fcoroutines'; status=$?; test $status -ne 0
-
-    - name: Fail if PVS-Studio found warnings
-      if: ${{ matrix.config.suffix == 'PVS-Studio' }}
-      shell: sh {0}
-      run: |
-        plog-converter -t tasklist -a GA:1,2,3 -w PVS-Studio.log
