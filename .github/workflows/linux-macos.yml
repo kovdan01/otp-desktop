@@ -157,7 +157,7 @@ jobs:
         python3 $REPO_PATH/ci/libs/qt5base.py
         cd $REPO_PATH
 
-    - name: Configure
+    - name: Build & install otp-desktop
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
@@ -183,21 +183,12 @@ jobs:
         save_builder(builder)
         os.chdir(repo)
 
-    - name: Build
-      env:
-        CC: ${{ matrix.config.cc }}
-        CXX: ${{ matrix.config.cxx }}
-      run: cmake --build build --target all
-
-    - name: Install Strip
-      run: cmake --install build --prefix install --strip
-
     - name: Tar files
-      run: tar -cvf install.tar ./install
+      run: tar -cvf prefix.tar ./prefix
 
     - name: Upload binaries
       if: ${{ matrix.config.artifact != '' }}
       uses: actions/upload-artifact@v2
       with:
-        path: ./install.tar
+        path: ./prefix.tar
         name: ${{ matrix.config.artifact }}
