@@ -1,3 +1,6 @@
 [submodule "cmake/ntc-cmake"]
 	path = cmake/ntc-cmake
 	url = https://github.com/kovdan01/ntc-cmake.git
+[submodule "ci"]
+	path = ci
+	url = https://github.com/kovdan01/cpp-deps-automation.git

@@ -1,0 +1,194 @@
+name: Build Linux & macOS
+
+on:
+  push:
+    branches: develop
+  pull_request:
+    branches: develop
+
+jobs:
+  build-core-server-client-desktop:
+    name: ${{ format('{0} {1} {2}', matrix.config.prefix, matrix.config.build_type, matrix.config.suffix) }}
+    runs-on: ${{ matrix.config.os }}
+    env:
+      YAML_CPP_VERSION: "0.6.3"
+      LIBOATH_VERSION: "2.6.7"
+      QT_VERSION: "5.15.2"
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+        - {
+            os: "ubuntu-latest",
+            prefix: "Linux",
+            suffix: "",
+            artifact: "all-release-linux",
+            build_type: "Release",
+            cc: "gcc",
+            cxx: "g++",
+          }
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
+
+    - name: Install required packages (Linux)
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        sudo apt update
+        sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
+        sudo apt install pkg-config -y
+        sudo apt install p7zip-full -y
+        sudo apt install python3 python3-pip -y
+
+    - name: Create necessary symlinks (Linux)
+      if: ${{ runner.os == 'Linux' }}
+      run: |
+        version=10
+        priority=100
+
+        sudo update-alternatives --install /usr/bin/gcc         gcc         /usr/bin/gcc-${version}         ${priority}
+        sudo update-alternatives --install /usr/bin/gcc-ar      gcc-ar      /usr/bin/gcc-ar-${version}      ${priority}
+        sudo update-alternatives --install /usr/bin/gcc-nm      gcc-nm      /usr/bin/gcc-nm-${version}      ${priority}
+        sudo update-alternatives --install /usr/bin/gcc-ranlib  gcc-ranlib  /usr/bin/gcc-ranlib-${version}  ${priority}
+        sudo update-alternatives --install /usr/bin/gcov        gcov        /usr/bin/gcov-${version}        ${priority}
+        sudo update-alternatives --install /usr/bin/gcov-dump   gcov-dump   /usr/bin/gcov-dump-${version}   ${priority}
+        sudo update-alternatives --install /usr/bin/gcov-tool   gcov-tool   /usr/bin/gcov-tool-${version}   ${priority}
+        sudo update-alternatives --install /usr/bin/lto-dump    lto-dump    /usr/bin/lto-dump-${version}    ${priority}
+        sudo update-alternatives --install /usr/bin/g++         g++         /usr/bin/g++-${version}         ${priority}
+
+        sudo update-alternatives --install /usr/bin/cc   cc   /usr/bin/gcc-${version} ${priority}
+        sudo update-alternatives --install /usr/bin/c++  c++  /usr/bin/g++-${version} ${priority}
+
+    - name: Set environment variables
+      shell: python3 {0}
+      run: |
+        import os
+
+        repo = os.path.normpath(os.environ['GITHUB_WORKSPACE'])
+        root = os.path.normpath(os.path.dirname(repo))
+        deps = os.path.join(repo, ".deps")
+        os.mkdir(deps)
+
+        with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+          env_file.write("REPO_PATH={}\n".format(repo))
+          env_file.write("ROOT_PATH={}\n".format(root))
+          env_file.write("DEPS_PATH={}\n".format(deps))
+
+    - name: Cache builder state
+      uses: actions/cache@v2
+      id: cache_builder_unix
+      with:
+        path: ${{ env.DEPS_PATH }}/builder.pkl
+        key: ${{ runner.os }}-builder-1
+
+    - name: Init CI builder
+      if: ${{ steps.cache_builder_unix.outputs.cache-hit != 'true' }}
+      run: |
+        cd $DEPS_PATH
+        python3 $REPO_PATH/ci/init.py
+        cd $REPO_PATH
+
+    - name: Download CMake
+      id: download_cmake
+      if: ${{ steps.cache_cmake.outputs.cache-hit != 'true' }}
+      run: |
+        cd $DEPS_PATH
+        python3 $REPO_PATH/ci/tools/cmake.py
+        cd $REPO_PATH
+
+    - name: Download Ninja
+      id: download_ninja
+      if: ${{ steps.cache_ninja.outputs.cache-hit != 'true' }}
+      run: |
+        cd $DEPS_PATH
+        python3 $REPO_PATH/ci/tools/ninja.py
+        cd $REPO_PATH
+
+    - name: Yaml CPP cache
+      uses: actions/cache@v2
+      id: cache_yaml_cpp_unix
+      with:
+        path: ${{ env.DEPS_PATH }}/yaml-cpp-yaml-cpp-${{ env.YAML_CPP_VERSION }}
+        key: ${{ runner.os }}-yaml-cpp-${{ env.YAML_CPP_VERSION }}-1
+
+    - name: Yaml CPP
+      if: ${{ steps.cache_yaml_cpp_unix.outputs.cache-hit != 'true' }}
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        cd $DEPS_PATH
+        python3 $REPO_PATH/ci/libs/yaml_cpp.py
+        cd $REPO_PATH
+
+    - name: LibOATH cache
+      uses: actions/cache@v2
+      id: cache_liboath_unix
+      with:
+        path: ${{ env.DEPS_PATH }}/oath-toolkit-${{ env.LIBOATH_VERSION }}
+        key: ${{ runner.os }}-liboath-${{ env.LIBOATH_VERSION }}-1
+
+    - name: LibOATH
+      if: ${{ steps.cache_liboath_unix.outputs.cache-hit != 'true' }}
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        cd $DEPS_PATH
+        python3 $REPO_PATH/ci/libs/liboath.py
+        cd $REPO_PATH
+
+    - name: Qt5 cache
+      uses: actions/cache@v2
+      id: cache_qt_unix
+      with:
+        path: ${{ env.DEPS_PATH }}/qtbase-everywhere-src-${{ env.QT_VERSION }}
+        key: ${{ runner.os }}-qt-qtbase-${{ env.QT_VERSION }}-1
+
+    - name: Qt5
+      if: ${{ steps.cache_qt_unix.outputs.cache-hit != 'true' }}
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        cd $DEPS_PATH
+        python3 $REPO_PATH/ci/libs/qt5base.py
+        cd $REPO_PATH
+
+    - name: Build & install otp-desktop
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      shell: python3 {0}
+      run: |
+        import os
+        import sys
+
+        repo = os.environ["REPO_PATH"]
+        deps = os.environ["DEPS_PATH"]
+
+        sys.path.append(os.path.join(repo, "ci"))
+
+        from builder import Builder, load_builder, save_builder
+
+        os.chdir(deps)
+        builder = load_builder()
+        qt5base_prefix = builder.get_prefix("qt5base")
+        yaml_cpp_prefix = builder.get_prefix("yaml-cpp")
+        liboath_prefix = builder.get_prefix("liboath")
+        builder.build_cmake(source_dir=repo,
+                            cmake_params='-D CMAKE_PREFIX_PATH="{};{};{}"'.format(qt5base_prefix, yaml_cpp_prefix, liboath_prefix))
+        save_builder(builder)
+        os.chdir(repo)
+
+    - name: Tar files
+      run: tar -cvf prefix.tar ./prefix
+
+    - name: Upload binaries
+      if: ${{ matrix.config.artifact != '' }}
+      uses: actions/upload-artifact@v2
+      with:
+        path: ./prefix.tar
+        name: ${{ matrix.config.artifact }}
