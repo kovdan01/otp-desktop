@@ -30,7 +30,7 @@ find_package(yaml-cpp REQUIRED)
 # Qt5 - UI
 find_package(
     Qt5 REQUIRED
-    COMPONENTS Widgets LinguistTools Sql
+    COMPONENTS Widgets #LinguistTools
 )
 
 # ZXing https://github.com/nu-book/zxing-cpp - QR code scanning
