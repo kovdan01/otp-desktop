@@ -128,10 +128,8 @@ jobs:
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
-      shell: python3
+      shell: python3 {0}
       run: |
-        #!/bin/python
-
         import os
         import sys
 
