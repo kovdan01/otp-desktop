@@ -69,6 +69,10 @@ jobs:
         repo = os.path.normpath(os.environ['GITHUB_WORKSPACE'])
         root = os.path.normpath(os.path.dirname(repo))
 
+        with open(os.environ['GITHUB_ENV'], 'a') as env_file:
+          env_file.write("REPO_PATH={}\n".format(repo))
+          env_file.write("ROOT_PATH={}\n".format(root))
+
     - name: Init CI builder
       run: python3 ci/init.py
 
