@@ -73,7 +73,15 @@ jobs:
           env_file.write("REPO_PATH={}\n".format(repo))
           env_file.write("ROOT_PATH={}\n".format(root))
 
+    - name: Cache builder state
+      uses: actions/cache@v2
+      id: cache_builder_unix
+      with:
+        path: ${{ env.REPO_PATH }}/builder.pkl
+        key: ${{ runner.os }}-builder
+
     - name: Init CI builder
+      if: ${{ steps.cache_builder_unix.outputs.cache-hit != 'true' }}
       run: python3 ci/init.py
 
     - name: Download CMake
@@ -91,7 +99,7 @@ jobs:
       id: cache_yaml_cpp_unix
       with:
         path: ${{ env.REPO_PATH }}/.deps/yaml-cpp-yaml-cpp-${{ env.YAML_CPP_VERSION }}
-        key: ${{ runner.os }}-yaml-cpp-${{ env.YAML_CPP_VERSION }}
+        key: ${{ runner.os }}-yaml-cpp-${{ env.YAML_CPP_VERSION }}-0
 
     - name: Yaml CPP
       if: ${{ steps.cache_yaml_cpp_unix.outputs.cache-hit != 'true' }}
@@ -105,7 +113,7 @@ jobs:
       id: cache_liboath_unix
       with:
         path: ${{ env.REPO_PATH }}/.deps/oath-toolkit-${{ env.LIBOATH_VERSION }}
-        key: ${{ runner.os }}-liboath-${{ env.LIBOATH_VERSION }}
+        key: ${{ runner.os }}-liboath-${{ env.LIBOATH_VERSION }}-0
 
     - name: LibOATH
       if: ${{ steps.cache_liboath_unix.outputs.cache-hit != 'true' }}
@@ -119,7 +127,7 @@ jobs:
       id: cache_qt_unix
       with:
         path: ${{ env.REPO_PATH }}/.deps/qtbase-everywhere-src-${{ env.QT_VERSION }}
-        key: ${{ runner.os }}-qt-qtbase-${{ env.QT_VERSION }}
+        key: ${{ runner.os }}-qt-qtbase-${{ env.QT_VERSION }}-0
 
     - name: Qt5
       if: ${{ steps.cache_qt_unix.outputs.cache-hit != 'true' }}
