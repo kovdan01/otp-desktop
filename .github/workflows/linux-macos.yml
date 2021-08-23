@@ -112,10 +112,15 @@ jobs:
     - name: Init CI builder
       run: python3 ci/init.py
 
-    - name: Download Ninja and CMake
-      id: download_ninja_and_cmake
-      if: ${{ steps.cache_ninja_and_cmake.outputs.cache-hit != 'true' }}
+    - name: Download CMake
+      id: download_cmake
+      if: ${{ steps.cache_cmake.outputs.cache-hit != 'true' }}
       run: python3 ci/tools/cmake.py
+
+    - name: Download Ninja
+      id: download_ninja
+      if: ${{ steps.cache_ninja.outputs.cache-hit != 'true' }}
+      run: python3 ci/tools/ninja.py
 
     - name: Yaml CPP cache
       uses: actions/cache@v2
