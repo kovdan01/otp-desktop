@@ -144,9 +144,9 @@ jobs:
         from builder import Builder, load_builder, save_builder
 
         builder = load_builder()
-        qt5base_prefix = self.get_prefix("qt5base")
-        yaml_cpp_prefix = self.get_prefix("yaml-cpp")
-        liboath_prefix = self.get_prefix("liboath")
+        qt5base_prefix = builder.get_prefix("qt5base")
+        yaml_cpp_prefix = builder.get_prefix("yaml-cpp")
+        liboath_prefix = builder.get_prefix("liboath")
         builder.build_cmake(source_dir=repo,
                             cmake_params='-D CMAKE_PREFIX_PATH="{};{};{}"'.format(qt5base_prefix, yaml_cpp_prefix, liboath_prefix))
         save_builder(builder)
