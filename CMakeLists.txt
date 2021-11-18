@@ -21,8 +21,8 @@ find_package(PkgConfig REQUIRED)
 # OATH toolkit https://www.nongnu.org/oath-toolkit/ - OTP generation
 pkg_check_modules(oath REQUIRED IMPORTED_TARGET liboath)
 
-# Libcrypto - encrypt secrets file
-#pkg_check_modules(crypto REQUIRED IMPORTED_TARGET libcrypto)
+# Libgcrypt - encrypt secrets file
+pkg_check_modules(gcrypt REQUIRED IMPORTED_TARGET libgcrypt)
 
 # yaml-cpp - work with configuration file
 find_package(yaml-cpp REQUIRED)
@@ -74,7 +74,7 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::oath)
-#target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::crypto)
+target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::gcrypt)
 target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets)
 #target_link_libraries(${PROJECT_NAME} PRIVATE ZXing::ZXing)

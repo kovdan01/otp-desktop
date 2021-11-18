@@ -1,3 +1,4 @@
+#include <crypto.hpp>
 #include <otp_list.hpp>
 
 #include <yaml-cpp/yaml.h>
@@ -30,10 +31,26 @@ OTPListSingleton::OTPListSingleton()
     m_settings_path = m_app_dir / "settings.yaml";
 }
 
+std::vector<byte_t> read_file_into_buf(std::string_view filepath)
+{
+    std::ifstream f(filepath.data(), std::ios_base::binary);
+    std::vector<byte_t> contents{std::istreambuf_iterator<char>{f}, std::istreambuf_iterator<char>{}};
+    return contents;
+}
+
+void write_buf_to_file(std::string_view filepath, std::span<const byte_t> data)
+{
+    std::ofstream f(filepath.data(), std::ios_base::binary);
+    f.write(reinterpret_cast<const char*>(data.data()), data.size());
+}
+
 void OTPListSingleton::load() try
 {
+    std::vector<byte_t> ciphertext = read_file_into_buf(m_settings_path.string());
+    std::string plaintext = decrypt_data(ciphertext, "password");
+
     std::vector<TOTP> entries_temp;
-    YAML::Node settings = YAML::LoadFile(m_settings_path.string());
+    YAML::Node settings = YAML::Load(plaintext);
     for (std::size_t i = 0; i < settings.size(); ++i)
     {
         YAML::Node element = settings[i];
@@ -61,7 +78,9 @@ void OTPListSingleton::dump() const try
         item["period"] = entry.period();
         settings.push_back(item);
     }
-    std::ofstream(m_settings_path) << YAML::Dump(settings);
+    std::string plaintext = YAML::Dump(settings);
+    std::vector<byte_t> ciphertext = encrypt_data(plaintext, "password");
+    write_buf_to_file(m_settings_path.string(), ciphertext);
 }
 catch (const YAML::Exception& e)
 {

@@ -27,6 +27,11 @@ public:
     OTPListSingleton(OTPListSingleton&&) = delete;
     OTPListSingleton& operator=(OTPListSingleton&&) = delete;
 
+    std::filesystem::path settings_path() const
+    {
+        return m_settings_path;
+    }
+
     const std::vector<TOTP>& entries() const
     {
         return m_entries;

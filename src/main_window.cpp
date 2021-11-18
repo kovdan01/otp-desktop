@@ -35,6 +35,15 @@ MainWindow::MainWindow(QWidget* parent)
     try
     {
         OTPListSingleton::get_instance().load();
+//        auto& instance = OTPListSingleton::get_instance();
+//        if (!std::filesystem::is_regular_file(instance.settings_path()))
+//        {
+
+//        }
+//        else
+//        {
+
+//        }
     }
     catch (const ParserException& e)
     {
