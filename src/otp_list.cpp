@@ -28,7 +28,7 @@ OTPListSingleton::OTPListSingleton()
     if (!std::filesystem::is_directory(m_app_dir))
         std::filesystem::create_directory(m_app_dir);
 
-    m_settings_path = m_app_dir / "settings.yaml";
+    m_settings_path = m_app_dir / "settings";
 }
 
 std::vector<byte_t> read_file_into_buf(std::string_view filepath)
@@ -47,7 +47,7 @@ void write_buf_to_file(std::string_view filepath, std::span<const byte_t> data)
 void OTPListSingleton::load() try
 {
     std::vector<byte_t> ciphertext = read_file_into_buf(m_settings_path.string());
-    std::string plaintext = decrypt_data(ciphertext, "password");
+    std::string plaintext = decrypt_data(ciphertext, m_password);
 
     std::vector<TOTP> entries_temp;
     YAML::Node settings = YAML::Load(plaintext);
@@ -79,7 +79,7 @@ void OTPListSingleton::dump() const try
         settings.push_back(item);
     }
     std::string plaintext = YAML::Dump(settings);
-    std::vector<byte_t> ciphertext = encrypt_data(plaintext, "password");
+    std::vector<byte_t> ciphertext = encrypt_data(plaintext, m_password);
     write_buf_to_file(m_settings_path.string(), ciphertext);
 }
 catch (const YAML::Exception& e)
@@ -87,6 +87,15 @@ catch (const YAML::Exception& e)
     throw ParserException(e.what());
 }
 
-OTPListSingleton::~OTPListSingleton() = default;
+void OTPListSingleton::set_password(std::string password)
+{
+    zero_data(m_password);
+    m_password = std::move(password);
+}
+
+OTPListSingleton::~OTPListSingleton()
+{
+    zero_data(m_password);
+}
 
 }  // namespace otpd

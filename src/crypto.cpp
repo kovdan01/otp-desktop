@@ -290,4 +290,18 @@ std::string decrypt_data(std::span<const byte_t> data, std::string_view password
     return ciphertext;
 }
 
+void zero_data(std::span<byte_t> data)
+{
+    // memset_s is available in C but not in C++
+    // use std::fill with volatile pointers as a workaround
+    volatile byte_t* from = data.data();
+    volatile byte_t* to = data.data() + data.size();
+    std::fill(from, to, 0);
+}
+
+void zero_data(std::string& data)
+{
+    zero_data({reinterpret_cast<byte_t*>(data.data()), data.size()});
+}
+
 }  // namespace otpd

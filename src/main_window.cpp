@@ -1,3 +1,5 @@
+#include <create_password_dialog.hpp>
+#include <enter_password_dialog.hpp>
 #include <main_window.hpp>
 #include <otp_list.hpp>
 
@@ -8,21 +10,23 @@ namespace otpd
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow{parent}
-    , m_add_item_dialog{new AddItemDialog{this, m_otp_list_model}}
+    , m_add_item_dialog{new AddItemDialog{this, m_otp_list_model.data()}}
+    , m_create_password_dialog{new CreatePasswordDialog{this}}
+    , m_enter_password_dialog{new EnterPasswordDialog{this}}
 {
     m_ui->setupUi(this);
     this->setFixedSize(600, 480);
 
-    m_ui->otp_list_view->setModel(m_otp_list_model);
-    m_otp_item_delegate = new OTPItemDelegate{m_ui->otp_list_view};
-    m_ui->otp_list_view->setItemDelegate(m_otp_item_delegate);
+    m_ui->otp_list_view->setModel(m_otp_list_model.data());
+    m_otp_item_delegate.reset(new OTPItemDelegate{m_ui->otp_list_view});
+    m_ui->otp_list_view->setItemDelegate(m_otp_item_delegate.data());
 
-    connect(m_otp_item_delegate,
+    connect(m_otp_item_delegate.data(),
             &OTPItemDelegate::show_hide_button_clicked,
             this,
             &MainWindow::show_hide_button_clicked);
 
-    connect(m_otp_item_delegate,
+    connect(m_otp_item_delegate.data(),
             &OTPItemDelegate::delete_button_clicked,
             this,
             &MainWindow::delete_button_clicked);
@@ -34,16 +38,33 @@ MainWindow::MainWindow(QWidget* parent)
 
     try
     {
-        OTPListSingleton::get_instance().load();
-//        auto& instance = OTPListSingleton::get_instance();
-//        if (!std::filesystem::is_regular_file(instance.settings_path()))
-//        {
-
-//        }
-//        else
-//        {
-
-//        }
+        auto& instance = OTPListSingleton::get_instance();
+        if (std::filesystem::is_regular_file(instance.settings_path()))
+        {
+            m_enter_password_dialog->clear_content();
+            int code = m_enter_password_dialog->exec();
+            switch (code)
+            {
+            case EnterPasswordDialog::RESULT_OK:
+                break;
+            case EnterPasswordDialog::RESULT_FAIL:
+                throw std::runtime_error("Shit!");
+                break;
+            }
+        }
+        else
+        {
+            m_create_password_dialog->clear_content();
+            int code = m_create_password_dialog->exec();
+            switch (code)
+            {
+            case CreatePasswordDialog::RESULT_OK:
+                break;
+            case CreatePasswordDialog::RESULT_FAIL:
+                throw std::runtime_error("Fuck!");
+                break;
+            }
+        }
     }
     catch (const ParserException& e)
     {

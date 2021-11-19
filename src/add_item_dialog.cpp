@@ -54,7 +54,7 @@ void AddItemDialog::accept()
             QMessageBox::critical(this, tr("Oops!"), tr("Period must be an integer between 1 and 30000!"));
             break;
         }
-        unsigned period           = m_ui->period_line_edit->text().toUInt();
+        unsigned period = m_ui->period_line_edit->text().toUInt();
 
         try
         {

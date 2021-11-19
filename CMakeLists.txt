@@ -40,7 +40,9 @@ set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui)
 
 set(HEADERS
     include/add_item_dialog.hpp
+    include/create_password_dialog.hpp
     include/crypto.hpp
+    include/enter_password_dialog.hpp
     include/main_window.hpp
     include/otp_item_delegate.hpp
     include/otp_list.hpp
@@ -50,7 +52,9 @@ set(HEADERS
 
 set(SOURCES
     src/add_item_dialog.cpp
+    src/create_password_dialog.cpp
     src/crypto.cpp
+    src/enter_password_dialog.cpp
     src/main.cpp
     src/main_window.cpp
     src/otp_item_delegate.cpp
@@ -61,6 +65,8 @@ set(SOURCES
 
 set(UI_FILES
     ui/add_item_dialog.ui
+    ui/create_password_dialog.ui
+    ui/enter_password_dialog.ui
     ui/main_window.ui
 )
 

@@ -25,7 +25,7 @@ public:
     void encrypt(std::span<byte_t> out, std::span<const byte_t> in);
     void decrypt(std::span<byte_t> out, std::span<const byte_t> in);
 
-    [[nodiscard]] const gcry_cipher_hd_t raw() const noexcept
+    [[nodiscard]] gcry_cipher_hd_t raw() const noexcept
     {
         return m_raw;
     }
@@ -45,7 +45,7 @@ public:
     std::size_t read(std::span<byte_t> buffer);
     void verify(std::span<const byte_t> hmac);
 
-    [[nodiscard]] const gcry_mac_hd_t raw() const noexcept
+    [[nodiscard]] gcry_mac_hd_t raw() const noexcept
     {
         return m_raw;
     }
@@ -58,6 +58,9 @@ GcryCipherWrapper init_cipher(std::span<byte_t> key, std::span<byte_t> init_vect
 
 std::vector<byte_t> encrypt_data(std::string_view plaintext, std::string_view password);
 std::string decrypt_data(std::span<const byte_t> data, std::string_view password);
+
+void zero_data(std::span<byte_t> data);
+void zero_data(std::string& data);
 
 }  // namespace otpd
 

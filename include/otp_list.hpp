@@ -5,6 +5,7 @@
 
 #include <filesystem>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace otpd
@@ -42,6 +43,8 @@ public:
         return m_entries;
     }
 
+    void set_password(std::string password);
+
     void load();
     void dump() const;
 
@@ -52,6 +55,7 @@ private:
     std::vector<TOTP> m_entries;
     std::filesystem::path m_app_dir;
     std::filesystem::path m_settings_path;
+    std::string m_password;
 };
 
 }  // namespace otpd
