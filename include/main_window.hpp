@@ -31,6 +31,7 @@ public slots:
     void show_hide_button_clicked(const QModelIndex& index);
     void delete_button_clicked(const QModelIndex& index);
     void add_item_button_clicked();
+    void change_password_button_clicked();
 
 private:
     QScopedPointer<Ui::MainWindow> m_ui{new Ui::MainWindow};

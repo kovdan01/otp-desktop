@@ -36,6 +36,11 @@ MainWindow::MainWindow(QWidget* parent)
             this,
             &MainWindow::add_item_button_clicked);
 
+    connect(m_ui->change_password_button,
+            &QPushButton::clicked,
+            this,
+            &MainWindow::change_password_button_clicked);
+
     try
     {
         auto& instance = OTPListSingleton::get_instance();
@@ -54,6 +59,7 @@ MainWindow::MainWindow(QWidget* parent)
         }
         else
         {
+            m_create_password_dialog->set_caption_create_password();
             m_create_password_dialog->clear_content();
             int code = m_create_password_dialog->exec();
             switch (code)
@@ -87,6 +93,13 @@ void MainWindow::add_item_button_clicked()
 {
     m_add_item_dialog->clear_content();
     m_add_item_dialog->show();
+}
+
+void MainWindow::change_password_button_clicked()
+{
+    m_create_password_dialog->set_caption_change_password();
+    m_create_password_dialog->clear_content();
+    m_create_password_dialog->show();
 }
 
 }  // namespace otpd

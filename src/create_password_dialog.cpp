@@ -41,6 +41,7 @@ void CreatePasswordDialog::accept()
         instance.dump();
         zero_data(password2);
         this->clear_content();
+        QMessageBox::information(this, tr("OK"), tr("Password set success"));
         this->done(RESULT_OK);
     }
 }
@@ -49,6 +50,18 @@ void CreatePasswordDialog::reject()
 {
     this->clear_content();
     this->done(RESULT_FAIL);
+}
+
+void CreatePasswordDialog::set_caption_create_password()
+{
+    m_ui->label->setText(tr("It seems that you use the app for the first time. "
+                            "Please set up a password to encrypt your data."));
+}
+
+void CreatePasswordDialog::set_caption_change_password()
+{
+    m_ui->label->setText(tr("You are about to change your data encryption password. "
+                            "Please type new password for 2 times."));
 }
 
 }  // namespace otpd

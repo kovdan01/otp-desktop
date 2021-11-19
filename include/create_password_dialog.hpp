@@ -32,6 +32,9 @@ public:
     void accept() override;
     void reject() override;
 
+    void set_caption_create_password();
+    void set_caption_change_password();
+
 private:
     QScopedPointer<Ui::CreatePasswordDialog> m_ui{new Ui::CreatePasswordDialog};
 };

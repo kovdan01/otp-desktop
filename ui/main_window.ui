@@ -28,6 +28,13 @@
       </property>
      </widget>
     </item>
+    <item>
+     <widget class="QPushButton" name="change_password_button">
+      <property name="text">
+       <string>Change password</string>
+      </property>
+     </widget>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
