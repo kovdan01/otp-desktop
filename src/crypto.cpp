@@ -226,6 +226,11 @@ std::vector<byte_t> encrypt_data(std::string_view text, std::string_view passwor
     // Append the computed HMAC to packed_data
     std::memcpy(packed_data.data() + kdf_salt.size() + init_vector.size() + plaintext.size(), hmac.data(), hmac_len);
 
+    zero_data(plaintext);
+    zero_data(kdf_key);
+    zero_data(aes_key);
+    zero_data(hmac_key);
+
     return packed_data;
 }
 
@@ -287,6 +292,11 @@ std::string decrypt_data(std::span<const byte_t> data, std::string_view password
 
     // Delete padding
     ciphertext.resize(ciphertext.size() - ciphertext.back());
+
+    zero_data(kdf_key);
+    zero_data(aes_key);
+    zero_data(hmac_key);
+
     return ciphertext;
 }
 

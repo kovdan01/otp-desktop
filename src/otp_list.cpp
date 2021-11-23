@@ -31,14 +31,14 @@ OTPListSingleton::OTPListSingleton()
     m_settings_path = m_app_dir / "settings";
 }
 
-std::vector<byte_t> read_file_into_buf(std::string_view filepath)
+static std::vector<byte_t> read_file_into_buf(std::string_view filepath)
 {
     std::ifstream f(filepath.data(), std::ios_base::binary);
     std::vector<byte_t> contents{std::istreambuf_iterator<char>{f}, std::istreambuf_iterator<char>{}};
     return contents;
 }
 
-void write_buf_to_file(std::string_view filepath, std::span<const byte_t> data)
+static void write_buf_to_file(std::string_view filepath, std::span<const byte_t> data)
 {
     std::ofstream f(filepath.data(), std::ios_base::binary);
     f.write(reinterpret_cast<const char*>(data.data()), data.size());
@@ -60,6 +60,7 @@ void OTPListSingleton::load() try
                                   element["period"].as<unsigned>());
     }
     m_entries.swap(entries_temp);
+    zero_data(plaintext);
 }
 catch (const YAML::Exception& e)
 {
@@ -80,6 +81,7 @@ void OTPListSingleton::dump() const try
     }
     std::string plaintext = YAML::Dump(settings);
     std::vector<byte_t> ciphertext = encrypt_data(plaintext, m_password);
+    zero_data(plaintext);
     write_buf_to_file(m_settings_path.string(), ciphertext);
 }
 catch (const YAML::Exception& e)
