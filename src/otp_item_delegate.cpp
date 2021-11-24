@@ -20,7 +20,7 @@ OTPItemDelegate::OTPItemDelegate(QObject* parent)
 {
 }
 
-QRect create_issuer_rect(const QStyleOptionViewItem& option)
+static QRect create_issuer_rect(const QStyleOptionViewItem& option)
 {
     QRect issuer_rect = option.rect;
     issuer_rect.setX(issuer_rect.x() + 5);
@@ -30,7 +30,7 @@ QRect create_issuer_rect(const QStyleOptionViewItem& option)
     return issuer_rect;
 }
 
-QRect create_label_rect(const QStyleOptionViewItem& option)
+static QRect create_label_rect(const QStyleOptionViewItem& option)
 {
     QRect label_rect = option.rect;
     label_rect.setX(label_rect.x() + 105);
@@ -40,7 +40,7 @@ QRect create_label_rect(const QStyleOptionViewItem& option)
     return label_rect;
 }
 
-QRect create_otp_rect(const QStyleOptionViewItem& option)
+static QRect create_otp_rect(const QStyleOptionViewItem& option)
 {
     QRect otp_rect = option.rect;
     otp_rect.setX(otp_rect.x() + 305);
@@ -50,7 +50,7 @@ QRect create_otp_rect(const QStyleOptionViewItem& option)
     return otp_rect;
 }
 
-QRect create_show_hide_button_rect(const QStyleOptionViewItem& option)
+static QRect create_show_hide_button_rect(const QStyleOptionViewItem& option)
 {
     QRect show_hide_button_rect(option.rect);
     show_hide_button_rect.setX(show_hide_button_rect.x() + 455);
@@ -60,7 +60,7 @@ QRect create_show_hide_button_rect(const QStyleOptionViewItem& option)
     return show_hide_button_rect;
 }
 
-QStyleOptionButton create_show_hide_button(const QRect& show_hide_button_rect, bool visible)
+static QStyleOptionButton create_show_hide_button(const QRect& show_hide_button_rect, bool visible)
 {
     QStyleOptionButton show_hide_button;
     show_hide_button.rect = show_hide_button_rect;
@@ -68,7 +68,7 @@ QStyleOptionButton create_show_hide_button(const QRect& show_hide_button_rect, b
     return show_hide_button;
 }
 
-QRect create_delete_button_rect(const QStyleOptionViewItem& option)
+static QRect create_delete_button_rect(const QStyleOptionViewItem& option)
 {
     QRect delete_button_rect(option.rect);
     delete_button_rect.setX(delete_button_rect.x() + 505);
@@ -78,7 +78,7 @@ QRect create_delete_button_rect(const QStyleOptionViewItem& option)
     return delete_button_rect;
 }
 
-QStyleOptionButton create_delete_button(const QRect& delete_button_rect)
+static QStyleOptionButton create_delete_button(const QRect& delete_button_rect)
 {
     QStyleOptionButton delete_button;
     delete_button.rect = delete_button_rect;
@@ -86,7 +86,7 @@ QStyleOptionButton create_delete_button(const QRect& delete_button_rect)
     return delete_button;
 }
 
-QRect create_progress_bar_rect(const QStyleOptionViewItem& option)
+static QRect create_progress_bar_rect(const QStyleOptionViewItem& option)
 {
     QRect progress_bar_rect(option.rect);
     progress_bar_rect.setLeft(progress_bar_rect.left() + 5);
@@ -95,13 +95,13 @@ QRect create_progress_bar_rect(const QStyleOptionViewItem& option)
     return progress_bar_rect;
 }
 
-QStyleOptionProgressBar create_progress_bar(const QRect& progress_bar_rect, double progress)
+static QStyleOptionProgressBar create_progress_bar(const QRect& progress_bar_rect, double progress)
 {
     QStyleOptionProgressBar progress_bar;
     progress_bar.rect = progress_bar_rect;
     progress_bar.minimum = 0;
     progress_bar.maximum = progress_bar_rect.width();
-    progress_bar.progress = progress * progress_bar.maximum;
+    progress_bar.progress = static_cast<int>(progress * progress_bar.maximum);
     return progress_bar;
 }
 

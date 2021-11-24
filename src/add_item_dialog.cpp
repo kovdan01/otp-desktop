@@ -32,7 +32,7 @@ void AddItemDialog::clear_content()
     m_ui->issuer_line_edit->setFocus();
 }
 
-void AddItemDialog::accept()
+void AddItemDialog::accept() try
 {
     std::string issuer        = m_ui->issuer_line_edit->text().toStdString();
     std::string label         = m_ui->label_line_edit->text().toStdString();
@@ -56,21 +56,14 @@ void AddItemDialog::accept()
         }
         unsigned period = m_ui->period_line_edit->text().toUInt();
 
-        try
-        {
-            m_otp_list_model->add_item(TOTP{std::move(issuer), std::move(label), std::move(secret_base32), period});
-        }
-        catch (const TOTPException& e)
-        {
-            QMessageBox::critical(this, tr("Oops!"), QLatin1String(e.what()));
-        }
-        catch (const ParserException& e)
-        {
-            QMessageBox::critical(this, tr("Oops!"), QLatin1String(e.what()));
-        }
+        m_otp_list_model->add_item(TOTP{std::move(issuer), std::move(label), std::move(secret_base32), period});
     } while (false);
 
     this->close();
 }
+OTP_DESKTOP_CATCH_TOTP_EXCEPTION
+OTP_DESKTOP_CATCH_CRYPTO_EXCEPTION
+OTP_DESKTOP_CATCH_STD_EXCEPTION
+OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
 }  // namespace otpd

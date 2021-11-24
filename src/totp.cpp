@@ -1,4 +1,5 @@
 #include <totp.hpp>
+#include <utils.hpp>
 
 #include <oath.h>
 
@@ -10,8 +11,6 @@
 
 namespace otpd
 {
-
-TOTPException::~TOTPException() = default;
 
 static void check_oath_result(int res)
 {
@@ -68,7 +67,7 @@ std::string TOTP::generate() const
     std::string out;
     out.resize(m_digits);
     std::time_t now = std::chrono::system_clock::to_time_t(std::chrono::system_clock::now());
-    int res = oath_totp_generate2(m_secret.data(),
+    int res = oath_totp_generate2(reinterpret_cast<const char*>(m_secret.data()),
                                   m_secret.size(),
                                   now,
                                   m_period,
@@ -79,6 +78,18 @@ std::string TOTP::generate() const
     check_oath_result(res);
 
     return out;
+}
+
+TOTP::~TOTP()
+{
+    zero_data(m_secret);
+    zero_data(m_secret_base32);
+    zero_data(m_issuer);
+    zero_data(m_label);
+    m_period = 0;
+    m_digits = 0;
+    m_algorithm = Algorithm::SHA1;
+    visible = false;
 }
 
 }  // namespace otpd

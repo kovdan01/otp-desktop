@@ -20,7 +20,7 @@ OTPListModel::OTPListModel(QObject* parent)
 
 int OTPListModel::rowCount(const QModelIndex& /* index */) const
 {
-    return OTPListSingleton::get_instance().entries().size();
+    return static_cast<int>(OTPListSingleton::get_instance().entries().size());
 }
 
 QVariant OTPListModel::data(const QModelIndex& index, int role) const
@@ -78,10 +78,10 @@ void OTPListModel::add_item(TOTP item)
     {
         otp_list_singleton.dump();
     }
-    catch (const ParserException& e)
+    catch (...)
     {
         otp_list_singleton.entries().pop_back();
-        throw e;
+        throw;
     }
 
     this->endInsertRows();
@@ -95,8 +95,18 @@ void OTPListModel::delete_item(const QModelIndex& index)
     std::size_t row = static_cast<std::size_t>(index.row());
     auto& otp_list_singleton = OTPListSingleton::get_instance();
     std::vector<TOTP>& entries = otp_list_singleton.entries();
+    std::vector<TOTP> entries_copy = entries;
     entries.erase(entries.begin() + row);
-    otp_list_singleton.dump();
+    try
+    {
+        otp_list_singleton.dump();
+    }
+    catch (...)
+    {
+        entries = entries_copy;
+        throw;
+    }
+
     emit dataChanged(index, index);
 }
 
@@ -116,7 +126,7 @@ void OTPListModel::timer_hit()
     if (!entries.empty())
     {
         QModelIndex first = this->index(0);
-        QModelIndex last = this->index(entries.size() - 1);
+        QModelIndex last = this->index(static_cast<int>(entries.size()) - 1);
         emit dataChanged(first, last);
     }
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();

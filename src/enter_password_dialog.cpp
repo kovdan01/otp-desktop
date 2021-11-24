@@ -19,28 +19,42 @@ void EnterPasswordDialog::clear_content()
     m_ui->password_line_edit->setFocus();
 }
 
-void EnterPasswordDialog::accept()
+void EnterPasswordDialog::accept() try
 {
-    std::string password = m_ui->password_line_edit->text().toStdString();
     try
     {
+        std::string password = m_ui->password_line_edit->text().toStdString();
         auto& instance = OTPListSingleton::get_instance();
         instance.set_password(std::move(password));
         instance.load();
         this->clear_content();
         this->done(RESULT_OK);
     }
-    catch (const std::runtime_error& e)
+    catch (...)
     {
-        QMessageBox::critical(this, tr("Oops!"), QLatin1String(e.what()));
         this->clear_content();
+        throw;
     }
 }
+OTP_DESKTOP_CATCH_PARSER_EXCEPTION
+OTP_DESKTOP_CATCH_CRYPTO_EXCEPTION
+OTP_DESKTOP_CATCH_STD_EXCEPTION
+OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
-void EnterPasswordDialog::reject()
+void EnterPasswordDialog::reject() try
 {
-    this->clear_content();
-    this->done(RESULT_FAIL);
+    try
+    {
+        this->clear_content();
+        this->done(RESULT_FAIL);
+    }
+    catch (...)
+    {
+        this->clear_content();
+        throw;
+    }
 }
+OTP_DESKTOP_CATCH_STD_EXCEPTION
+OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
 }  // namespace otpd

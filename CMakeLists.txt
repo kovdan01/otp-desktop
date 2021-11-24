@@ -24,17 +24,14 @@ pkg_check_modules(oath REQUIRED IMPORTED_TARGET liboath)
 # Libgcrypt - encrypt secrets file
 pkg_check_modules(gcrypt REQUIRED IMPORTED_TARGET libgcrypt)
 
-# yaml-cpp - work with configuration file
-find_package(yaml-cpp REQUIRED)
-
 # Qt5 - UI
 find_package(
     Qt5 REQUIRED
-    COMPONENTS Widgets #LinguistTools
+    COMPONENTS Widgets # LinguistTools
 )
 
 # ZXing https://github.com/nu-book/zxing-cpp - QR code scanning
-#find_package(ZXing REQUIRED)
+# find_package(ZXing REQUIRED)
 
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui)
 
@@ -48,6 +45,7 @@ set(HEADERS
     include/otp_list.hpp
     include/otp_list_model.hpp
     include/totp.hpp
+    include/utils.hpp
 )
 
 set(SOURCES
@@ -61,6 +59,7 @@ set(SOURCES
     src/otp_list.cpp
     src/otp_list_model.cpp
     src/totp.cpp
+    src/utils.cpp
 )
 
 set(UI_FILES
@@ -81,9 +80,8 @@ target_compile_features(${PROJECT_NAME} PRIVATE cxx_std_20)
 target_link_libraries(${PROJECT_NAME} PRIVATE Threads::Threads)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::oath)
 target_link_libraries(${PROJECT_NAME} PRIVATE PkgConfig::gcrypt)
-target_link_libraries(${PROJECT_NAME} PRIVATE yaml-cpp)
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt5::Widgets)
-#target_link_libraries(${PROJECT_NAME} PRIVATE ZXing::ZXing)
+# target_link_libraries(${PROJECT_NAME} PRIVATE ZXing::ZXing)
 
 ntc_target(${PROJECT_NAME}
 #    TRANSLATIONS en_US

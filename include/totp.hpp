@@ -1,6 +1,8 @@
 #ifndef OTP_DESKTOP_TOTP_HPP_
 #define OTP_DESKTOP_TOTP_HPP_
 
+#include <utils.hpp>
+
 #include <QMetaType>
 
 #include <stdexcept>
@@ -10,13 +12,6 @@
 
 namespace otpd
 {
-
-class TOTPException : public std::runtime_error
-{
-public:
-    using std::runtime_error::runtime_error;
-    ~TOTPException() override;
-};
 
 class TOTPSingleton
 {
@@ -36,8 +31,6 @@ private:
 class TOTP
 {
 public:
-    using byte_t = char;
-
     enum class Algorithm
     {
         SHA1,
@@ -46,6 +39,7 @@ public:
     };
 
     TOTP() = default;  // for QVariant
+    ~TOTP();
     TOTP(std::string issuer, std::string label, std::string secret_base32, unsigned period = 30);
 
     TOTP(const TOTP&) = default;

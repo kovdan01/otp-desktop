@@ -41,53 +41,50 @@ MainWindow::MainWindow(QWidget* parent)
             this,
             &MainWindow::change_password_button_clicked);
 
-    try
+    auto& instance = OTPListSingleton::get_instance();
+    if (std::filesystem::is_regular_file(instance.settings_path()))
     {
-        auto& instance = OTPListSingleton::get_instance();
-        if (std::filesystem::is_regular_file(instance.settings_path()))
+        m_enter_password_dialog->clear_content();
+        int code = m_enter_password_dialog->exec();
+        switch (code)
         {
-            m_enter_password_dialog->clear_content();
-            int code = m_enter_password_dialog->exec();
-            switch (code)
-            {
-            case EnterPasswordDialog::RESULT_OK:
-                break;
-            case EnterPasswordDialog::RESULT_FAIL:
-                throw std::runtime_error("Shit!");
-                break;
-            }
-        }
-        else
-        {
-            m_create_password_dialog->set_caption_create_password();
-            m_create_password_dialog->clear_content();
-            int code = m_create_password_dialog->exec();
-            switch (code)
-            {
-            case CreatePasswordDialog::RESULT_OK:
-                break;
-            case CreatePasswordDialog::RESULT_FAIL:
-                throw std::runtime_error("Fuck!");
-                break;
-            }
+        case EnterPasswordDialog::RESULT_OK:
+            break;
+        case EnterPasswordDialog::RESULT_FAIL:
+            throw std::runtime_error("Exit before password enter");
+            break;
         }
     }
-    catch (const ParserException& e)
+    else
     {
-        QMessageBox::critical(this, tr("Oops!"), tr("Corrupted settings file"));
-        throw e;
+        m_create_password_dialog->set_caption_create_password();
+        m_create_password_dialog->clear_content();
+        int code = m_create_password_dialog->exec();
+        switch (code)
+        {
+        case CreatePasswordDialog::RESULT_OK:
+            break;
+        case CreatePasswordDialog::RESULT_FAIL:
+            throw std::runtime_error("Exit before password create");
+            break;
+        }
     }
 }
 
-void MainWindow::delete_button_clicked(const QModelIndex& index)
+void MainWindow::delete_button_clicked(const QModelIndex& index) try
 {
     m_otp_list_model->delete_item(index);
 }
+OTP_DESKTOP_CATCH_CRYPTO_EXCEPTION
+OTP_DESKTOP_CATCH_STD_EXCEPTION
+OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
-void MainWindow::show_hide_button_clicked(const QModelIndex &index)
+void MainWindow::show_hide_button_clicked(const QModelIndex& index) try
 {
     m_otp_list_model->change_visibility(index);
 }
+OTP_DESKTOP_CATCH_STD_EXCEPTION
+OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
 void MainWindow::add_item_button_clicked()
 {

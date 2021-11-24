@@ -1,6 +1,6 @@
 #include <create_password_dialog.hpp>
-#include <crypto.hpp>
 #include <otp_list.hpp>
+#include <utils.hpp>
 
 #include <QMessageBox>
 
@@ -23,34 +23,55 @@ void CreatePasswordDialog::clear_content()
     m_ui->enter_password_line_edit->setFocus();
 }
 
-void CreatePasswordDialog::accept()
+void CreatePasswordDialog::accept() try
 {
-    std::string password1 = m_ui->enter_password_line_edit->text().toStdString();
-    std::string password2 = m_ui->repeat_password_line_edit->text().toStdString();
-    if (password1 != password2)
+    try
     {
-        zero_data(password1);
-        zero_data(password2);
-        this->clear_content();
-        QMessageBox::critical(this, tr("Oops!"), tr("Passwords do not match!"));
+        std::string password1 = m_ui->enter_password_line_edit->text().toStdString();
+        std::string password2 = m_ui->repeat_password_line_edit->text().toStdString();
+        if (password1 != password2)
+        {
+            zero_data(password1);
+            zero_data(password2);
+            this->clear_content();
+            QMessageBox::critical(this, tr("Oops!"), tr("Passwords do not match!"));
+        }
+        else
+        {
+            auto& instance = OTPListSingleton::get_instance();
+            instance.set_password(std::move(password1));
+            instance.dump();
+            zero_data(password2);
+            this->clear_content();
+            QMessageBox::information(this, tr("OK"), tr("Password set success"));
+            this->done(RESULT_OK);
+        }
     }
-    else
+    catch (...)
     {
-        auto& instance = OTPListSingleton::get_instance();
-        instance.set_password(std::move(password1));
-        instance.dump();
-        zero_data(password2);
         this->clear_content();
-        QMessageBox::information(this, tr("OK"), tr("Password set success"));
-        this->done(RESULT_OK);
+        throw;
     }
 }
+OTP_DESKTOP_CATCH_CRYPTO_EXCEPTION
+OTP_DESKTOP_CATCH_STD_EXCEPTION
+OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
-void CreatePasswordDialog::reject()
+void CreatePasswordDialog::reject() try
 {
-    this->clear_content();
-    this->done(RESULT_FAIL);
+    try
+    {
+        this->clear_content();
+        this->done(RESULT_FAIL);
+    }
+    catch (...)
+    {
+        this->clear_content();
+        throw;
+    }
 }
+OTP_DESKTOP_CATCH_STD_EXCEPTION
+OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
 void CreatePasswordDialog::set_caption_create_password()
 {

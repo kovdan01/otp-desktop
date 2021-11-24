@@ -1,8 +1,11 @@
 #include <crypto.hpp>
+#include <utils.hpp>
 
+#include <gcrypt.h>
+
+#include <cstdint>
 #include <cstring>
 #include <sstream>
-#include <stdexcept>
 
 namespace otpd
 {
@@ -10,9 +13,49 @@ namespace otpd
 static constexpr std::size_t AES256_KEY_SIZE = 32;
 static constexpr std::size_t AES256_BLOCK_SIZE = 16;
 static constexpr std::size_t HMAC_KEY_SIZE = 64;
-static constexpr std::size_t KDF_ITERATIONS = 50000;
+static constexpr std::size_t KDF_ITERATIONS = 100'000;
 static constexpr std::size_t KDF_SALT_SIZE = 128;
 static constexpr std::size_t KDF_KEY_SIZE = AES256_KEY_SIZE + HMAC_KEY_SIZE;
+
+class GcryCipherWrapper
+{
+public:
+    GcryCipherWrapper(int algo, int mode, unsigned int flags);
+    ~GcryCipherWrapper();
+
+    void setkey(std::span<const byte_t> key);
+    void setiv(std::span<const byte_t> init_vector);
+    void encrypt(std::span<byte_t> out, std::span<const byte_t> in);
+    void decrypt(std::span<byte_t> out, std::span<const byte_t> in);
+
+    [[nodiscard]] gcry_cipher_hd_t raw() const noexcept
+    {
+        return m_raw;
+    }
+
+private:
+    gcry_cipher_hd_t m_raw = nullptr;
+};
+
+class GcryMacWrapper
+{
+public:
+    GcryMacWrapper(int algo, unsigned int flags, gcry_ctx_t ctx);
+    ~GcryMacWrapper();
+
+    void setkey(std::span<const byte_t> key);
+    void write(std::span<const byte_t> data);
+    std::size_t read(std::span<byte_t> buffer);
+    void verify(std::span<const byte_t> hmac);
+
+    [[nodiscard]] gcry_mac_hd_t raw() const noexcept
+    {
+        return m_raw;
+    }
+
+private:
+    gcry_mac_hd_t m_raw = nullptr;
+};
 
 GcryCipherWrapper::GcryCipherWrapper(int algo, int mode, unsigned int flags)
 {
@@ -21,7 +64,7 @@ GcryCipherWrapper::GcryCipherWrapper(int algo, int mode, unsigned int flags)
     {
         std::ostringstream ss;
         ss << "cipher_open: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -40,7 +83,7 @@ void GcryCipherWrapper::setkey(std::span<const byte_t> key)
     {
         std::ostringstream ss;
         ss << "cipher_setkey: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -51,7 +94,7 @@ void GcryCipherWrapper::setiv(std::span<const byte_t> init_vector)
     {
         std::ostringstream ss;
         ss << "cipher_setiv: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -62,7 +105,7 @@ void GcryCipherWrapper::encrypt(std::span<byte_t> out, std::span<const byte_t> i
     {
         std::ostringstream ss;
         ss << "cipher_encrypt: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -73,7 +116,7 @@ void GcryCipherWrapper::decrypt(std::span<byte_t> out, std::span<const byte_t> i
     {
         std::ostringstream ss;
         ss << "cipher_decrypt: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -84,7 +127,7 @@ GcryMacWrapper::GcryMacWrapper(int algo, unsigned int flags, gcry_ctx_t ctx)
     {
         std::ostringstream ss;
         ss << "mac_open: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -103,7 +146,7 @@ void GcryMacWrapper::setkey(std::span<const byte_t> key)
     {
         std::ostringstream ss;
         ss << "mac_setkey: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -114,7 +157,7 @@ void GcryMacWrapper::write(std::span<const byte_t> data)
     {
         std::ostringstream ss;
         ss << "mac_write: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
@@ -126,7 +169,7 @@ std::size_t GcryMacWrapper::read(std::span<byte_t> buffer)
     {
         std::ostringstream ss;
         ss << "mac_read during encryption: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
     return len;
 }
@@ -138,11 +181,11 @@ void GcryMacWrapper::verify(std::span<const byte_t> hmac)
     {
         std::ostringstream ss;
         ss << "HMAC verification failed: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 }
 
-GcryCipherWrapper init_cipher(std::span<byte_t> key, std::span<byte_t> init_vector)
+static GcryCipherWrapper init_cipher(std::span<byte_t> key, std::span<byte_t> init_vector)
 {
     // 256-bit AES using cipher-block chaining; with ciphertext stealing, no manual padding is required
     GcryCipherWrapper cipher(GCRY_CIPHER_AES256,
@@ -155,7 +198,7 @@ GcryCipherWrapper init_cipher(std::span<byte_t> key, std::span<byte_t> init_vect
     return cipher;
 }
 
-std::vector<byte_t> encrypt_data(std::string_view text, std::string_view password)
+std::vector<byte_t> encrypt_data(std::span<const byte_t> data, std::string_view password)
 {
     std::array<byte_t, AES256_BLOCK_SIZE> init_vector;
     std::array<byte_t, KDF_SALT_SIZE> kdf_salt;
@@ -164,10 +207,10 @@ std::vector<byte_t> encrypt_data(std::string_view text, std::string_view passwor
     std::array<byte_t, HMAC_KEY_SIZE> hmac_key;
     gcry_error_t err;
 
-    std::uint8_t padding = AES256_BLOCK_SIZE - (text.size() % AES256_BLOCK_SIZE);
-    std::vector<byte_t> plaintext(text.size() + padding);
-    std::memcpy(plaintext.data(), text.data(), text.size());
-    std::memset(plaintext.data() + text.size(), padding, padding);
+    std::uint8_t padding = AES256_BLOCK_SIZE - (data.size() % AES256_BLOCK_SIZE);
+    std::vector<byte_t> plaintext(data.size() + padding);
+    std::memcpy(plaintext.data(), data.data(), data.size());
+    std::memset(plaintext.data() + data.size(), padding, padding);
 
     // Generate 128 byte salt in preparation for key derivation
     gcry_create_nonce(kdf_salt.data(), kdf_salt.size());
@@ -186,7 +229,7 @@ std::vector<byte_t> encrypt_data(std::string_view text, std::string_view passwor
     {
         std::ostringstream ss;
         ss << "kdf_derive: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 
     // Copy the first 32 bytes of kdf_key into aes_key
@@ -234,7 +277,7 @@ std::vector<byte_t> encrypt_data(std::string_view text, std::string_view passwor
     return packed_data;
 }
 
-std::string decrypt_data(std::span<const byte_t> data, std::string_view password)
+std::vector<byte_t> decrypt_data(std::span<const byte_t> data, std::string_view password)
 {
     std::array<byte_t, AES256_BLOCK_SIZE> init_vector;
     std::array<byte_t, KDF_SALT_SIZE> kdf_salt;
@@ -246,7 +289,7 @@ std::string decrypt_data(std::span<const byte_t> data, std::string_view password
 
     // Compute necessary lengths
     std::vector<byte_t> hmac(gcry_mac_get_algo_maclen(GCRY_MAC_HMAC_SHA512));
-    std::string ciphertext;
+    std::vector<byte_t> ciphertext;
     ciphertext.resize(data.size() - kdf_salt.size() - init_vector.size() - hmac.size());
 
     // Unpack data
@@ -269,7 +312,7 @@ std::string decrypt_data(std::span<const byte_t> data, std::string_view password
     {
         std::ostringstream ss;
         ss << "kdf_derive: " << gcry_strsource(err) << '/' << gcry_strerror(err);
-        throw std::runtime_error(ss.str());
+        throw CryptoException(ss.str());
     }
 
     // Copy the first 32 bytes of kdf_key into aes_key
@@ -298,20 +341,6 @@ std::string decrypt_data(std::span<const byte_t> data, std::string_view password
     zero_data(hmac_key);
 
     return ciphertext;
-}
-
-void zero_data(std::span<byte_t> data)
-{
-    // memset_s is available in C but not in C++
-    // use std::fill with volatile pointers as a workaround
-    volatile byte_t* from = data.data();
-    volatile byte_t* to = data.data() + data.size();
-    std::fill(from, to, 0);
-}
-
-void zero_data(std::string& data)
-{
-    zero_data({reinterpret_cast<byte_t*>(data.data()), data.size()});
 }
 
 }  // namespace otpd
