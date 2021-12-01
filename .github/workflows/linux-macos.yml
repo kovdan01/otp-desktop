@@ -162,13 +162,19 @@ jobs:
         path: ${{ env.HOME }}/.conan
         key: ${{ runner.os }}-conan
 
-    - name: Install conan dependencies
+    - name: Build oath-toolkit
       if: ${{ steps.cache_conan_dependencies.outputs.cache-hit != 'true' }}
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
+
+    - name: Install conan dependencies
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
         mkdir build && cd build
         conan install $REPO_PATH
         mv gcrypt.pc libgcrypt.pc
