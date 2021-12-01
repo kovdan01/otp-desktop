@@ -11,6 +11,10 @@ project(otp-desktop
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/ntc-cmake/ntc-cmake")
 
+message("AAAAAAAAAAAAA")
+message(${CMAKE_MODULE_PATH})
+message("BBBBBBBBBBBBB")
+
 include(ntc-dev-build)
 
 set(THREADS_PREFER_PTHERAD_FLAG ON)
