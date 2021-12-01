@@ -73,6 +73,11 @@ jobs:
           env_file.write("REPO_PATH={}\n".format(repo))
           env_file.write("ROOT_PATH={}\n".format(root))
 
+          if "${{ runner.os }}" == "Linux":
+            env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "bin")))
+          elif "${{ runner.os }}" == "macOS":
+            env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "CMake.app", "Contents", "bin")))
+
     - name: Download Ninja and CMake
       id: download_ninja_and_cmake
       if: ${{ steps.cache_ninja_and_cmake.outputs.cache-hit != 'true' }}
