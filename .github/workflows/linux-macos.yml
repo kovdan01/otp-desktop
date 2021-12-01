@@ -36,8 +36,10 @@ jobs:
     - name: Install required packages (Linux)
       if: ${{ runner.os == 'Linux' }}
       run: |
-        sudo apt update
-        sudo apt install build-essential automake libtool autoconf autotools-dev -y
+        sudo apt update -y
+        sudo apt upgrade -y
+        sudo apt install build-essential -y
+        sudo apt install make autoconf automake libtool bison gengetopt libtool autoconf autotools-dev -y
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
         sudo apt install pkg-config -y
         sudo apt install libgl-dev  # for Qt
