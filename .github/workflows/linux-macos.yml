@@ -127,13 +127,14 @@ jobs:
         cd $ROOT_PATH
         wget https://github.com/conan-io/conan/releases/download/${{ env.CONAN_VERSION }}/conan-ubuntu-64.deb
         sudo dpkg -i conan-ubuntu-64.deb
+        conan profile update settings.compiler.libcxx=libstdc++11 default
         cd $REPO_PATH
 
     - name: Install dependencies
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
         mkdir build && cd build
-        conan install ..
+        conan install $REPO_PATH
         cd $REPO_PATH
 
     - name: Configure
