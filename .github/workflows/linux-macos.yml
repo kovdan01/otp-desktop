@@ -73,6 +73,7 @@ jobs:
           env_file.write("REPO_PATH={}\n".format(repo))
           env_file.write("ROOT_PATH={}\n".format(root))
 
+          cmake_tool_path = os.environ['CMAKE_TOOL_PATH']
           if "${{ runner.os }}" == "Linux":
             env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "bin")))
           elif "${{ runner.os }}" == "macOS":
