@@ -37,7 +37,7 @@ jobs:
       if: ${{ runner.os == 'Linux' }}
       run: |
         sudo apt update
-        sudo apt install build-essential -y
+        sudo apt install build-essential automake -y
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
         sudo apt install pkg-config -y
         sudo apt install libgl-dev  # for Qt
