@@ -11,21 +11,23 @@ jobs:
     name: ${{ format('{0} {1} {2}', matrix.config.prefix, matrix.config.build_type, matrix.config.suffix) }}
     runs-on: ${{ matrix.config.os }}
     env:
-      YAML_CPP_VERSION: "0.6.3"
-      LIBOATH_VERSION: "2.6.7"
-      QT_VERSION: "5.15.2"
+      CMAKE_TOOL_VERSION: "3.22.0"
+      CMAKE_TOOL_PATH: "cmake-tool"
+      NINJA_TOOL_VERSION: "1.10.2"
+      NINJA_TOOL_PATH: "ninja-tool"
+      CONAN_VERSION: "1.42.2"
     strategy:
       fail-fast: false
       matrix:
         config:
         - {
-            os: "ubuntu-latest",
+            os: "ubuntu-20.04",
             prefix: "Linux",
             suffix: "",
             artifact: "all-release-linux",
             build_type: "Release",
-            cc: "gcc",
-            cxx: "g++",
+            cc: "gcc-10",
+            cxx: "g++-10",
           }
 
     steps:
@@ -36,9 +38,12 @@ jobs:
     - name: Install required packages (Linux)
       if: ${{ runner.os == 'Linux' }}
       run: |
-        sudo apt update
+        sudo apt update -y
+        sudo apt install build-essential -y
+        sudo apt install libxml2 libxml2-dev libxml2-utils -y  # for libpskc
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
         sudo apt install pkg-config -y
+        sudo apt install libgl-dev  # for Qt
         sudo apt install p7zip-full -y
         sudo apt install python3 python3-pip -y
 
@@ -68,120 +73,120 @@ jobs:
 
         repo = os.path.normpath(os.environ['GITHUB_WORKSPACE'])
         root = os.path.normpath(os.path.dirname(repo))
-        deps = os.path.join(repo, ".deps")
-        os.mkdir(deps)
 
         with open(os.environ['GITHUB_ENV'], 'a') as env_file:
           env_file.write("REPO_PATH={}\n".format(repo))
           env_file.write("ROOT_PATH={}\n".format(root))
-          env_file.write("DEPS_PATH={}\n".format(deps))
 
-    - name: Cache builder state
+          cmake_tool_path = os.environ['CMAKE_TOOL_PATH']
+          if "${{ runner.os }}" == "Linux":
+            env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "bin")))
+          elif "${{ runner.os }}" == "macOS":
+            env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "CMake.app", "Contents", "bin")))
+
+    - name: Ninja and CMake cache
       uses: actions/cache@v2
-      id: cache_builder_unix
+      id: cache_ninja_and_cmake
       with:
-        path: ${{ env.DEPS_PATH }}/builder.pkl
-        key: ${{ runner.os }}-builder-1
+        path: |
+          ${{ env.ROOT_PATH }}/${{ env.CMAKE_TOOL_PATH }}
+          ${{ env.ROOT_PATH }}/${{ env.NINJA_TOOL_PATH }}
+        key: ${{ runner.os }}-ninja-${{ env.NINJA_TOOL_VERSION }}-cmake-${{ env.CMAKE_TOOL_VERSION }}
 
-    - name: Init CI builder
-      if: ${{ steps.cache_builder_unix.outputs.cache-hit != 'true' }}
-      run: |
-        cd $DEPS_PATH
-        python3 $REPO_PATH/ci/init.py
-        cd $REPO_PATH
-
-    - name: Download CMake
-      id: download_cmake
-      if: ${{ steps.cache_cmake.outputs.cache-hit != 'true' }}
-      run: |
-        cd $DEPS_PATH
-        python3 $REPO_PATH/ci/tools/cmake.py
-        cd $REPO_PATH
-
-    - name: Download Ninja
-      id: download_ninja
-      if: ${{ steps.cache_ninja.outputs.cache-hit != 'true' }}
-      run: |
-        cd $DEPS_PATH
-        python3 $REPO_PATH/ci/tools/ninja.py
-        cd $REPO_PATH
-
-    - name: Yaml CPP cache
-      uses: actions/cache@v2
-      id: cache_yaml_cpp_unix
-      with:
-        path: ${{ env.DEPS_PATH }}/yaml-cpp-yaml-cpp-${{ env.YAML_CPP_VERSION }}
-        key: ${{ runner.os }}-yaml-cpp-${{ env.YAML_CPP_VERSION }}-1
-
-    - name: Yaml CPP
-      if: ${{ steps.cache_yaml_cpp_unix.outputs.cache-hit != 'true' }}
-      env:
-        CC: ${{ matrix.config.cc }}
-        CXX: ${{ matrix.config.cxx }}
-      run: |
-        cd $DEPS_PATH
-        python3 $REPO_PATH/ci/libs/yaml_cpp.py
-        cd $REPO_PATH
-
-    - name: LibOATH cache
-      uses: actions/cache@v2
-      id: cache_liboath_unix
-      with:
-        path: ${{ env.DEPS_PATH }}/oath-toolkit-${{ env.LIBOATH_VERSION }}
-        key: ${{ runner.os }}-liboath-${{ env.LIBOATH_VERSION }}-1
-
-    - name: LibOATH
-      if: ${{ steps.cache_liboath_unix.outputs.cache-hit != 'true' }}
-      env:
-        CC: ${{ matrix.config.cc }}
-        CXX: ${{ matrix.config.cxx }}
-      run: |
-        cd $DEPS_PATH
-        python3 $REPO_PATH/ci/libs/liboath.py
-        cd $REPO_PATH
-
-    - name: Qt5 cache
-      uses: actions/cache@v2
-      id: cache_qt_unix
-      with:
-        path: ${{ env.DEPS_PATH }}/qtbase-everywhere-src-${{ env.QT_VERSION }}
-        key: ${{ runner.os }}-qt-qtbase-${{ env.QT_VERSION }}-1
-
-    - name: Qt5
-      if: ${{ steps.cache_qt_unix.outputs.cache-hit != 'true' }}
-      env:
-        CC: ${{ matrix.config.cc }}
-        CXX: ${{ matrix.config.cxx }}
-      run: |
-        cd $DEPS_PATH
-        python3 $REPO_PATH/ci/libs/qt5base.py
-        cd $REPO_PATH
-
-    - name: Build & install otp-desktop
-      env:
-        CC: ${{ matrix.config.cc }}
-        CXX: ${{ matrix.config.cxx }}
+    - name: Download Ninja and CMake
+      if: ${{ steps.cache_ninja_and_cmake.outputs.cache-hit != 'true' }}
       shell: python3 {0}
       run: |
         import os
-        import sys
+        import requests
+        import subprocess
 
-        repo = os.environ["REPO_PATH"]
-        deps = os.environ["DEPS_PATH"]
+        def execute_command(cmd):
+          ret = subprocess.call(cmd, shell=True)
+          if ret != 0:
+            raise RuntimeError('Exit code {} while executing "{}"'.format(ret, cmd))
 
-        sys.path.append(os.path.join(repo, "ci"))
+        root = os.environ['ROOT_PATH']
+        repo = os.environ['REPO_PATH']
 
-        from builder import Builder, load_builder, save_builder
+        os.chdir(root)
 
-        os.chdir(deps)
-        builder = load_builder()
-        qt5base_prefix = builder.get_prefix("qt5base")
-        yaml_cpp_prefix = builder.get_prefix("yaml-cpp")
-        liboath_prefix = builder.get_prefix("liboath")
-        builder.build_cmake(source_dir=repo,
-                            cmake_params='-D CMAKE_PREFIX_PATH="{};{};{}"'.format(qt5base_prefix, yaml_cpp_prefix, liboath_prefix))
-        save_builder(builder)
+        cmake_version = os.environ['CMAKE_TOOL_VERSION']
+        ninja_version = os.environ['NINJA_TOOL_VERSION']
+        cmake_tool_path = os.environ['CMAKE_TOOL_PATH']
+        ninja_tool_path = os.environ['NINJA_TOOL_PATH']
+        cmake_tool_binary_path = os.environ['CMAKE_TOOL_BINARY_PATH']
+
+        if "${{ runner.os }}" == "Linux":
+          ninja_suffix = "linux.zip"
+          cmake_suffix = "linux-x86_64.tar.gz"
+          cmake_dir = "cmake-{}-linux-x86_64".format(cmake_version)
+        elif "${{ runner.os }}" == "macOS":
+          ninja_suffix = "mac.zip"
+          cmake_suffix = "Darwin-x86_64.tar.gz"
+          cmake_dir = "cmake-{}-Darwin-x86_64".format(cmake_version)
+
+        os.mkdir(ninja_tool_path)
+        os.chdir(ninja_tool_path)
+        ninja_url = "https://github.com/ninja-build/ninja/releases/download/v{}/ninja-{}".format(ninja_version, ninja_suffix)
+        open("ninja.zip", "wb").write(requests.get(ninja_url, allow_redirects=True).content)
+        execute_command("7z x ninja.zip")
+        execute_command("chmod +x ninja")
+        os.chdir(root)
+
+        cmake_url = "https://github.com/Kitware/CMake/releases/download/v{}/cmake-{}-{}".format(cmake_version, cmake_version, cmake_suffix)
+
+        open("cmake.tar.gz", "wb").write(requests.get(cmake_url, allow_redirects=True).content)
+        execute_command("tar -xf cmake.tar.gz")
+        os.rename(cmake_dir, cmake_tool_path)
+        execute_command("chmod +x {}/cmake".format(cmake_tool_binary_path))
+
         os.chdir(repo)
+
+    - name: Install conan
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        cd $ROOT_PATH
+        wget https://github.com/conan-io/conan/releases/download/${{ env.CONAN_VERSION }}/conan-ubuntu-64.deb
+        sudo dpkg -i conan-ubuntu-64.deb
+        conan profile new default --detect
+        conan profile update settings.compiler.libcxx=libstdc++11 default
+        cd $REPO_PATH
+
+    - name: Install conan dependencies
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
+        mkdir build && cd build
+        conan install $REPO_PATH
+        mv gcrypt.pc libgcrypt.pc
+        cd $REPO_PATH
+
+    - name: Configure
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
+      run: |
+        export PKG_CONFIG_PATH="`pwd`/build"
+        "$CMAKE_TOOL_BINARY_PATH/cmake" \
+            -G Ninja \
+            -D CMAKE_MAKE_PROGRAM="$ROOT_PATH/$NINJA_TOOL_PATH/ninja" \
+            -S . \
+            -B build \
+            -D CMAKE_MODULE_PATH="`pwd`/build" \
+            -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
+            -D CMAKE_INSTALL_PREFIX="`pwd`/prefix" \
+            -D CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
+            -D CMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -D CMAKE_VERBOSE_MAKEFILE=ON
+
+    - name: Build
+      run: |
+        cmake --build build --target install
 
     - name: Tar files
       run: tar -cvf prefix.tar ./prefix
