@@ -171,6 +171,7 @@ jobs:
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
         mkdir build && cd build
         conan install $REPO_PATH
+        mv gcrypt.pc libgcrypt.pc
         cd $REPO_PATH
 
     - name: Configure
