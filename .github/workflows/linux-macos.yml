@@ -21,7 +21,7 @@ jobs:
       matrix:
         config:
         - {
-            os: "ubuntu-latest",
+            os: "ubuntu-20.04",
             prefix: "Linux",
             suffix: "",
             artifact: "all-release-linux",
@@ -37,7 +37,7 @@ jobs:
       if: ${{ runner.os == 'Linux' }}
       run: |
         sudo apt update
-        sudo apt install build-essential automake -y
+        sudo apt install build-essential automake libtool autoconf autotools-dev -y
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
         sudo apt install pkg-config -y
         sudo apt install libgl-dev  # for Qt
@@ -124,6 +124,9 @@ jobs:
         os.chdir(repo)
 
     - name: Install conan
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
       run: |
         cd $ROOT_PATH
         wget https://github.com/conan-io/conan/releases/download/${{ env.CONAN_VERSION }}/conan-ubuntu-64.deb
@@ -133,6 +136,9 @@ jobs:
         cd $REPO_PATH
 
     - name: Install dependencies
+      env:
+        CC: ${{ matrix.config.cc }}
+        CXX: ${{ matrix.config.cxx }}
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
         mkdir build && cd build
