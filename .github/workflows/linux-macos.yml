@@ -155,26 +155,12 @@ jobs:
         conan profile update settings.compiler.libcxx=libstdc++11 default
         cd $REPO_PATH
 
-    - name: Cache conan dependencies
-      uses: actions/cache@v2
-      id: cache_conan_dependencies
-      with:
-        path: ${{ env.HOME }}/.conan
-        key: ${{ runner.os }}-conan
-
-    - name: Build oath-toolkit
-      if: ${{ steps.cache_conan_dependencies.outputs.cache-hit != 'true' }}
-      env:
-        CC: ${{ matrix.config.cc }}
-        CXX: ${{ matrix.config.cxx }}
-      run: |
-        conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
-
     - name: Install conan dependencies
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
+        conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
         mkdir build && cd build
         conan install $REPO_PATH
         mv gcrypt.pc libgcrypt.pc
