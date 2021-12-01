@@ -153,15 +153,15 @@ jobs:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        export PKG_CONFIG_PATH=`pwd`
-        $CMAKE_TOOL_BINARY_PATH/cmake \
+        export PKG_CONFIG_PATH="`pwd`/build"
+        "$CMAKE_TOOL_BINARY_PATH/cmake" \
             -G Ninja \
-            -D CMAKE_MAKE_PROGRAM=$ROOT_PATH/$NINJA_TOOL_PATH/ninja \
+            -D CMAKE_MAKE_PROGRAM="$ROOT_PATH/$NINJA_TOOL_PATH/ninja" \
             -S . \
             -B build \
-            -D CMAKE_MODULE_PATH=`pwd` \
+            -D CMAKE_MODULE_PATH="`pwd`/build" \
             -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
-            -D CMAKE_INSTALL_PREFIX=`pwd`/prefix
+            -D CMAKE_INSTALL_PREFIX="`pwd`/prefix" \
             -D CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
             -D CMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -D CMAKE_VERBOSE_MAKEFILE=ON
