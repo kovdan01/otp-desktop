@@ -32,6 +32,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: "recursive"
 
     - name: Install required packages (Linux)
       if: ${{ runner.os == 'Linux' }}
