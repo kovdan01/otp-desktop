@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.5 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.19 FATAL_ERROR)
 
 # Interprocedural optimization
 cmake_policy(SET CMP0069 NEW)
@@ -8,12 +8,8 @@ project(otp-desktop
     LANGUAGES CXX
 )
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake/ntc-cmake/ntc-cmake")
-
-message("AAAAAAAAAAAAA")
-message(${CMAKE_MODULE_PATH})
-message("BBBBBBBBBBBBB")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_LIST_DIR}/cmake")
+set(CMAKE_MODULE_PATH "${CMAKE_MODULE_PATH};${CMAKE_CURRENT_LIST_DIR}/cmake/ntc-cmake/ntc-cmake")
 
 include(ntc-dev-build)
 
