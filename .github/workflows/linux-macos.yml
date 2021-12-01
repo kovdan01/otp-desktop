@@ -11,7 +11,7 @@ jobs:
     name: ${{ format('{0} {1} {2}', matrix.config.prefix, matrix.config.build_type, matrix.config.suffix) }}
     runs-on: ${{ matrix.config.os }}
     env:
-      CMAKE_TOOL_VERSION: "3.19.1"
+      CMAKE_TOOL_VERSION: "3.22.0"
       CMAKE_TOOL_PATH: "cmake-tool"
       NINJA_TOOL_VERSION: "1.10.2"
       NINJA_TOOL_PATH: "ninja-tool"
@@ -39,6 +39,7 @@ jobs:
         sudo apt update -y
         sudo apt upgrade -y
         sudo apt install build-essential -y
+        sudo apt install libxml2 libxml2-dev libxml2-utils -y
         sudo apt install make autoconf automake libtool bison gengetopt libtool autoconf autotools-dev -y
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
         sudo apt install pkg-config -y
