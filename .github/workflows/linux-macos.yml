@@ -40,6 +40,7 @@ jobs:
         sudo apt install build-essential -y
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
         sudo apt install pkg-config -y
+        sudo apt install libgl-dev  # for Qt
         sudo apt install p7zip-full -y
         sudo apt install python3 python3-pip -y
 
@@ -127,6 +128,7 @@ jobs:
         cd $ROOT_PATH
         wget https://github.com/conan-io/conan/releases/download/${{ env.CONAN_VERSION }}/conan-ubuntu-64.deb
         sudo dpkg -i conan-ubuntu-64.deb
+        conan profile new default --detect
         conan profile update settings.compiler.libcxx=libstdc++11 default
         cd $REPO_PATH
 
