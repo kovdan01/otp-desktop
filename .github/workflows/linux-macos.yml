@@ -106,8 +106,8 @@ jobs:
         cmake_tool_binary_path = os.environ['CMAKE_TOOL_BINARY_PATH']
         if "${{ runner.os }}" == "Linux":
           ninja_suffix = "linux.zip"
-          cmake_suffix = "Linux-x86_64.tar.gz"
-          cmake_dir = "cmake-{}-Linux-x86_64".format(cmake_version)
+          cmake_suffix = "linux-x86_64.tar.gz"
+          cmake_dir = "cmake-{}-linux-x86_64".format(cmake_version)
         elif "${{ runner.os }}" == "macOS":
           ninja_suffix = "mac.zip"
           cmake_suffix = "Darwin-x86_64.tar.gz"
