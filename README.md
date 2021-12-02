@@ -1,8 +1,14 @@
 # OTP codes generator
 
+[![Build Linux](https://github.com/kovdan01/otp-desktop/actions/workflows/linux.yml/badge.svg)](https://github.com/kovdan01/otp-desktop/actions/workflows/linux.yml)
+
 A simple desktop application for generating OTP codes.
 
 ![screenshot](screenshot.png)
+
+## Download
+
+You can always download the latest version from [releases page](https://github.com/kovdan01/otp-desktop/releases/latest).
 
 ## Motivation
 
@@ -24,8 +30,8 @@ I just wanted use an open-source OTP application on my desktop, and it seems tha
 ### Dependencies
 
 - [qt5-base](https://github.com/qt/qtbase)
-- [liboath](https://www.nongnu.org/oath-toolkit)
-- [yaml-cpp](https://github.com/jbeder/yaml-cpp)
+- [liboath](https://gitlab.com/oath-toolkit/oath-toolkit)
+- [libgcrypt](https://github.com/gpg/libgcrypt)
 - [ntc-cmake](https://github.com/kovdan01/ntc-cmake). It is bundled in this repository as a submodule (see `cmake/ntc-cmake` directory).
 
 ### Build instructions
@@ -44,6 +50,8 @@ cmake \
     -S . \
     -B build \
     -D CMAKE_BUILD_TYPE=Release \
-    -D CMAKE_PREFIX_PATH="/path/to/liboath/prefix;/path/to/yaml-cpp/prefix" \
+    -D CMAKE_PREFIX_PATH=/path/to/liboath/prefix \
     -D CMAKE_INSTALL_PREFIX=/path/to/desired/prefix
 ```
+
+You can also use conan to handle dependencies. Please use [.github/workflows/linux.yml](.github/workflows/linux.yml) as an example of such approach.
