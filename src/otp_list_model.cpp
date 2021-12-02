@@ -48,7 +48,7 @@ Qt::ItemFlags OTPListModel::flags(const QModelIndex& index) const
     return index.isValid() ? Qt::ItemIsEnabled | Qt::ItemIsSelectable : Qt::ItemFlags();
 }
 
-bool OTPListModel::setData(const QModelIndex& index, const QVariant& value, int role)
+bool OTPListModel::setData(const QModelIndex& index, const QVariant& value, int role) try
 {
     if (!index.isValid())
         return false;
@@ -57,13 +57,31 @@ bool OTPListModel::setData(const QModelIndex& index, const QVariant& value, int 
     switch (role)
     {
     case Qt::DisplayRole:
-        OTPListSingleton::get_instance().entries()[row] = value.value<TOTP>();
+    {
+        auto& otp_list_singleton = OTPListSingleton::get_instance();
+        std::vector<TOTP>& entries = otp_list_singleton.entries();
+        std::vector<TOTP> entries_copy = entries;
+        entries[row] = value.value<TOTP>();
+        try
+        {
+            otp_list_singleton.dump();
+        }
+        catch (...)
+        {
+            entries = entries_copy;
+            return false;
+        }
         emit dataChanged(index, index);
         return true;
+    }
     default:
         break;
     }
 
+    return false;
+}
+catch (...)
+{
     return false;
 }
 
@@ -85,6 +103,16 @@ void OTPListModel::add_item(TOTP item)
     }
 
     this->endInsertRows();
+}
+
+const TOTP* OTPListModel::get_item(const QModelIndex& index)
+{
+    if (!index.isValid())
+        return nullptr;
+
+    std::size_t row = static_cast<std::size_t>(index.row());
+    auto& otp_list_singleton = OTPListSingleton::get_instance();
+    return &otp_list_singleton.entries()[row];
 }
 
 void OTPListModel::delete_item(const QModelIndex& index)

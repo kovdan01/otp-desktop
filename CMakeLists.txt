@@ -36,7 +36,7 @@ find_package(
 set(CMAKE_AUTOUIC_SEARCH_PATHS ${CMAKE_CURRENT_LIST_DIR}/ui)
 
 set(HEADERS
-    include/add_item_dialog.hpp
+    include/add_edit_item_dialog.hpp
     include/create_password_dialog.hpp
     include/crypto.hpp
     include/enter_password_dialog.hpp
@@ -49,7 +49,7 @@ set(HEADERS
 )
 
 set(SOURCES
-    src/add_item_dialog.cpp
+    src/add_edit_item_dialog.cpp
     src/create_password_dialog.cpp
     src/crypto.cpp
     src/enter_password_dialog.cpp
@@ -63,7 +63,7 @@ set(SOURCES
 )
 
 set(UI_FILES
-    ui/add_item_dialog.ui
+    ui/add_edit_item_dialog.ui
     ui/create_password_dialog.ui
     ui/enter_password_dialog.ui
     ui/main_window.ui

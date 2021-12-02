@@ -24,10 +24,12 @@ public:
 signals:
     void show_hide_button_clicked(const QModelIndex& index);
     void delete_button_clicked(const QModelIndex& index);
+    void edit_button_clicked(const QModelIndex& index);
 
 private:
     std::map<int, QStyle::State> m_show_hide_button_states;
     std::map<int, QStyle::State> m_delete_button_states;
+    std::map<int, QStyle::State> m_edit_button_states;
 };
 
 }  // namespace otpd

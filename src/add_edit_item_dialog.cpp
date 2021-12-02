@@ -1,4 +1,4 @@
-#include <add_item_dialog.hpp>
+#include <add_edit_item_dialog.hpp>
 #include <otp_list.hpp>
 
 #include <QFont>
@@ -10,7 +10,7 @@
 namespace otpd
 {
 
-AddItemDialog::AddItemDialog(QWidget* parent, OTPListModel* model)
+AddEditItemDialog::AddEditItemDialog(QWidget* parent, OTPListModel* model)
     : QDialog{parent}
     , m_otp_list_model{model}
 {
@@ -23,7 +23,7 @@ AddItemDialog::AddItemDialog(QWidget* parent, OTPListModel* model)
     m_ui->secret_base32_line_edit->setFont(secret_base32_font);
 }
 
-void AddItemDialog::clear_content()
+void AddEditItemDialog::clear_content()
 {
     m_ui->issuer_line_edit->clear();
     m_ui->label_line_edit->clear();
@@ -32,7 +32,22 @@ void AddItemDialog::clear_content()
     m_ui->issuer_line_edit->setFocus();
 }
 
-void AddItemDialog::accept() try
+void AddEditItemDialog::display_existing_content()
+{
+    const TOTP* current_totp_item = m_otp_list_model->get_item(this->index);
+    if (current_totp_item == nullptr)
+    {
+        this->clear_content();
+        return;
+    }
+    m_ui->issuer_line_edit->setText(QString::fromStdString(current_totp_item->issuer()));
+    m_ui->label_line_edit->setText(QString::fromStdString(current_totp_item->label()));
+    m_ui->secret_base32_line_edit->setText(QString::fromStdString(current_totp_item->secret_base32()));
+    m_ui->period_line_edit->setText(QString::fromStdString(std::to_string(current_totp_item->period())));
+    m_ui->issuer_line_edit->setFocus();
+}
+
+void AddEditItemDialog::accept() try
 {
     std::string issuer        = m_ui->issuer_line_edit->text().toStdString();
     std::string label         = m_ui->label_line_edit->text().toStdString();
@@ -56,7 +71,18 @@ void AddItemDialog::accept() try
         }
         unsigned period = m_ui->period_line_edit->text().toUInt();
 
-        m_otp_list_model->add_item(TOTP{std::move(issuer), std::move(label), std::move(secret_base32), period});
+        TOTP totp_item{std::move(issuer), std::move(label), std::move(secret_base32), period};
+
+        switch (this->operation)
+        {
+        case Operation::ADD:
+            m_otp_list_model->add_item(std::move(totp_item));
+            break;
+        case Operation::EDIT:
+            m_otp_list_model->setData(this->index, QVariant::fromValue(totp_item), Qt::DisplayRole);
+            break;
+        }
+
     } while (false);
 
     this->close();

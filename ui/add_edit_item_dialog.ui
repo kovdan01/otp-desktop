@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>AddItemDialog</class>
- <widget class="QDialog" name="AddItemDialog">
+ <class>AddEditItemDialog</class>
+ <widget class="QDialog" name="AddEditItemDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -12,6 +12,9 @@
   </property>
   <property name="windowTitle">
    <string>Add OTP item</string>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -75,7 +78,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>AddItemDialog</receiver>
+   <receiver>AddEditItemDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -91,7 +94,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>AddItemDialog</receiver>
+   <receiver>AddEditItemDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
