@@ -194,6 +194,7 @@ jobs:
         cd $ROOT_PATH/otp-desktop.AppDir
         wget https://github.com/AppImage/AppImageKit/releases/download/13/AppRun-x86_64
         mv AppRun-x86_64 AppRun
+        chmod +x AppRun
         cd $ROOT_PATH
         wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
         chmod +x appimagetool-x86_64.AppImage
