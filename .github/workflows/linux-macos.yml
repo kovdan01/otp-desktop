@@ -163,7 +163,7 @@ jobs:
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable -o *:shared=True
         mkdir $REPO_PATH/build
         conan install $REPO_PATH -if $REPO_PATH/build -g deploy -o *:shared=True
-        mv $REPO_PATH/gcrypt.pc $REPO_PATH/libgcrypt.pc
+        mv $REPO_PATH/build/gcrypt.pc $REPO_PATH/build/libgcrypt.pc
 
     - name: Configure
       env:
