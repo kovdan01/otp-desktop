@@ -160,9 +160,9 @@ jobs:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
+        conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable -o *:shared=True
         mkdir -p $ROOT_PATH/otp-desktop.AppDir/usr
-        conan install $REPO_PATH -if $ROOT_PATH/otp-desktop.AppDir -g deploy
+        conan install $REPO_PATH -if $ROOT_PATH/otp-desktop.AppDir -g deploy -o *:shared=True
         mv $ROOT_PATH/otp-desktop.AppDir/gcrypt.pc $ROOT_PATH/otp-desktop.AppDir/libgcrypt.pc
 
     - name: Configure
