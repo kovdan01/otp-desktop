@@ -1,4 +1,4 @@
-name: Build Linux & macOS
+name: Build Linux
 
 on:
   push:
@@ -13,8 +13,6 @@ jobs:
     env:
       CMAKE_TOOL_VERSION: "3.22.0"
       CMAKE_TOOL_PATH: "cmake-tool"
-      NINJA_TOOL_VERSION: "1.10.2"
-      NINJA_TOOL_PATH: "ninja-tool"
       CONAN_VERSION: "1.42.2"
     strategy:
       fail-fast: false
@@ -40,8 +38,9 @@ jobs:
       run: |
         sudo apt update -y
         sudo apt install build-essential -y
-        sudo apt install libxml2 libxml2-dev libxml2-utils -y  # for libpskc
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
+        sudo apt install ninja-build -y
+        sudo apt install libxml2 libxml2-dev libxml2-utils -y  # for libpskc
         sudo apt install pkg-config -y
         sudo apt install libgl-dev  # for Qt
         sudo apt install p7zip-full -y
@@ -79,22 +78,17 @@ jobs:
           env_file.write("ROOT_PATH={}\n".format(root))
 
           cmake_tool_path = os.environ['CMAKE_TOOL_PATH']
-          if "${{ runner.os }}" == "Linux":
-            env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "bin")))
-          elif "${{ runner.os }}" == "macOS":
-            env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "CMake.app", "Contents", "bin")))
+          env_file.write("CMAKE_TOOL_BINARY_PATH={}\n".format(os.path.join(root, cmake_tool_path, "bin")))
 
-    - name: Ninja and CMake cache
+    - name: CMake cache
       uses: actions/cache@v2
-      id: cache_ninja_and_cmake
+      id: cache_cmake
       with:
-        path: |
-          ${{ env.ROOT_PATH }}/${{ env.CMAKE_TOOL_PATH }}
-          ${{ env.ROOT_PATH }}/${{ env.NINJA_TOOL_PATH }}
-        key: ${{ runner.os }}-ninja-${{ env.NINJA_TOOL_VERSION }}-cmake-${{ env.CMAKE_TOOL_VERSION }}
+        path: ${{ env.ROOT_PATH }}/${{ env.CMAKE_TOOL_PATH }}
+        key: ${{ runner.os }}-cmake-${{ env.CMAKE_TOOL_VERSION }}
 
-    - name: Download Ninja and CMake
-      if: ${{ steps.cache_ninja_and_cmake.outputs.cache-hit != 'true' }}
+    - name: Download CMake
+      if: ${{ steps.cache_cmake.outputs.cache-hit != 'true' }}
       shell: python3 {0}
       run: |
         import os
@@ -112,30 +106,13 @@ jobs:
         os.chdir(root)
 
         cmake_version = os.environ['CMAKE_TOOL_VERSION']
-        ninja_version = os.environ['NINJA_TOOL_VERSION']
         cmake_tool_path = os.environ['CMAKE_TOOL_PATH']
-        ninja_tool_path = os.environ['NINJA_TOOL_PATH']
         cmake_tool_binary_path = os.environ['CMAKE_TOOL_BINARY_PATH']
 
-        if "${{ runner.os }}" == "Linux":
-          ninja_suffix = "linux.zip"
-          cmake_suffix = "linux-x86_64.tar.gz"
-          cmake_dir = "cmake-{}-linux-x86_64".format(cmake_version)
-        elif "${{ runner.os }}" == "macOS":
-          ninja_suffix = "mac.zip"
-          cmake_suffix = "Darwin-x86_64.tar.gz"
-          cmake_dir = "cmake-{}-Darwin-x86_64".format(cmake_version)
-
-        os.mkdir(ninja_tool_path)
-        os.chdir(ninja_tool_path)
-        ninja_url = "https://github.com/ninja-build/ninja/releases/download/v{}/ninja-{}".format(ninja_version, ninja_suffix)
-        open("ninja.zip", "wb").write(requests.get(ninja_url, allow_redirects=True).content)
-        execute_command("7z x ninja.zip")
-        execute_command("chmod +x ninja")
-        os.chdir(root)
+        cmake_suffix = "linux-x86_64.tar.gz"
+        cmake_dir = "cmake-{}-linux-x86_64".format(cmake_version)
 
         cmake_url = "https://github.com/Kitware/CMake/releases/download/v{}/cmake-{}-{}".format(cmake_version, cmake_version, cmake_suffix)
-
         open("cmake.tar.gz", "wb").write(requests.get(cmake_url, allow_redirects=True).content)
         execute_command("tar -xf cmake.tar.gz")
         os.rename(cmake_dir, cmake_tool_path)
@@ -173,7 +150,6 @@ jobs:
         export PKG_CONFIG_PATH="$REPO_PATH/build"
         "$CMAKE_TOOL_BINARY_PATH/cmake" \
             -G Ninja \
-            -D CMAKE_MAKE_PROGRAM="$ROOT_PATH/$NINJA_TOOL_PATH/ninja" \
             -S . \
             -B build \
             -D CMAKE_MODULE_PATH="$REPO_PATH/build" \
