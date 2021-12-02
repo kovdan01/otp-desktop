@@ -22,9 +22,9 @@ jobs:
         config:
         - {
             os: "ubuntu-20.04",
-            prefix: "Linux",
+            prefix: "Linux x86_64",
             suffix: "",
-            artifact: "all-release-linux",
+            artifact: "linux-x86_64-release",
             build_type: "Release",
             cc: "gcc-10",
             cxx: "g++-10",
@@ -42,6 +42,7 @@ jobs:
         sudo apt install build-essential -y
         sudo apt install libxml2 libxml2-dev libxml2-utils -y  # for libpskc
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
+        sudo apt install qt5-qmake -y  # for AppImage creation
         sudo apt install pkg-config -y
         sudo apt install libgl-dev  # for Qt
         sudo apt install p7zip-full -y
@@ -161,9 +162,9 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable -o *:shared=True
-        mkdir -p $ROOT_PATH/otp-desktop.AppDir/usr
-        conan install $REPO_PATH -if $ROOT_PATH/otp-desktop.AppDir -g deploy -o *:shared=True
-        mv $ROOT_PATH/otp-desktop.AppDir/gcrypt.pc $ROOT_PATH/otp-desktop.AppDir/libgcrypt.pc
+        mkdir $REPO_PATH/build
+        conan install $REPO_PATH -if $REPO_PATH -o *:shared=True
+        mv $REPO_PATH/gcrypt.pc $REPO_PATH/libgcrypt.pc
 
     - name: Configure
       env:
@@ -171,13 +172,13 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         mkdir build
-        export PKG_CONFIG_PATH="$ROOT_PATH/otp-desktop.AppDir"
+        export PKG_CONFIG_PATH="$REPO_PATH/build"
         "$CMAKE_TOOL_BINARY_PATH/cmake" \
             -G Ninja \
             -D CMAKE_MAKE_PROGRAM="$ROOT_PATH/$NINJA_TOOL_PATH/ninja" \
             -S . \
             -B build \
-            -D CMAKE_MODULE_PATH="$ROOT_PATH/otp-desktop.AppDir" \
+            -D CMAKE_MODULE_PATH="$REPO_PATH/build" \
             -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
             -D CMAKE_INSTALL_PREFIX="$REPO_PATH/prefix" \
             -D CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
@@ -190,6 +191,7 @@ jobs:
 
     - name: Create AppImage
       run: |
+        mkdir -p $ROOT_PATH/otp-desktop.AppDir/usr
         cp -r deploy/* $ROOT_PATH/otp-desktop.AppDir/
         cd $ROOT_PATH
         wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
