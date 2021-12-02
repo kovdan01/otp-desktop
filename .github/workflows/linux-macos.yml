@@ -162,7 +162,8 @@ jobs:
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
         mkdir build && cd build
-        conan install $REPO_PATH
+        mkdir $ROOT_PATH/otp-desktop.AppDir
+        conan install $REPO_PATH -if $ROOT_PATH/otp-desktop.AppDir -g deploy
         mv gcrypt.pc libgcrypt.pc
         cd $REPO_PATH
 
@@ -177,9 +178,9 @@ jobs:
             -D CMAKE_MAKE_PROGRAM="$ROOT_PATH/$NINJA_TOOL_PATH/ninja" \
             -S . \
             -B build \
-            -D CMAKE_MODULE_PATH="`pwd`/build" \
+            -D CMAKE_MODULE_PATH="$ROOT_PATH/otp-desktop.AppDir" \
             -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
-            -D CMAKE_INSTALL_PREFIX="`pwd`/prefix" \
+            -D CMAKE_INSTALL_PREFIX="$ROOT_PATH/otp-desktop.AppDir" \
             -D CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
             -D CMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -D CMAKE_VERBOSE_MAKEFILE=ON
@@ -188,12 +189,17 @@ jobs:
       run: |
         cmake --build build --target install
 
-    - name: Tar files
-      run: tar -cvf prefix.tar ./prefix
+    - name: Create AppImage
+      run: |
+        cp deploy/* $ROOT_PATH/otp-desktop.AppDir/
+        cd $ROOT_PATH
+        wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        ./appimagetool-x86_64.AppImage otp-desktop.AppDir
 
     - name: Upload binaries
       if: ${{ matrix.config.artifact != '' }}
       uses: actions/upload-artifact@v2
       with:
-        path: ./prefix.tar
+        path: ${{ env.ROOT_PATH/otp-desktop-x86_64.AppImage }}
         name: ${{ matrix.config.artifact }}

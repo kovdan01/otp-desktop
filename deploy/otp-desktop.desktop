@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=otp-desktop
+Exec=otp-desktop
+Comment=A simple desktop application for generating OTP codes.
+Categories=Utilities;
+Icon=otp-desktop
+Terminal=false
