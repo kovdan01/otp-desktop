@@ -201,5 +201,5 @@ jobs:
       if: ${{ matrix.config.artifact != '' }}
       uses: actions/upload-artifact@v2
       with:
-        path: ${{ env.ROOT_PATH/otp-desktop-x86_64.AppImage }}
+        path: ${{ env.ROOT_PATH }}/otp-desktop-x86_64.AppImage
         name: ${{ matrix.config.artifact }}
