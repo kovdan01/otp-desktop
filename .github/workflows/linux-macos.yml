@@ -161,18 +161,17 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
-        mkdir build && cd build
         mkdir $ROOT_PATH/otp-desktop.AppDir
         conan install $REPO_PATH -if $ROOT_PATH/otp-desktop.AppDir -g deploy
-        mv gcrypt.pc libgcrypt.pc
-        cd $REPO_PATH
+        mv $ROOT_PATH/otp-desktop.AppDir/gcrypt.pc $ROOT_PATH/otp-desktop.AppDir/libgcrypt.pc
 
     - name: Configure
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        export PKG_CONFIG_PATH="`pwd`/build"
+        mkdir build
+        export PKG_CONFIG_PATH="$ROOT_PATH/otp-desktop.AppDir"
         "$CMAKE_TOOL_BINARY_PATH/cmake" \
             -G Ninja \
             -D CMAKE_MAKE_PROGRAM="$ROOT_PATH/$NINJA_TOOL_PATH/ninja" \
