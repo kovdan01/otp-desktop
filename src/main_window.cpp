@@ -10,7 +10,7 @@ namespace otpd
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow{parent}
-    , m_add_item_dialog{new AddItemDialog{this, m_otp_list_model.data()}}
+    , m_add_edit_item_dialog{new AddEditItemDialog{this, m_otp_list_model.data()}}
     , m_create_password_dialog{new CreatePasswordDialog{this}}
     , m_enter_password_dialog{new EnterPasswordDialog{this}}
 {
@@ -30,6 +30,11 @@ MainWindow::MainWindow(QWidget* parent)
             &OTPItemDelegate::delete_button_clicked,
             this,
             &MainWindow::delete_button_clicked);
+
+    connect(m_otp_item_delegate.data(),
+            &OTPItemDelegate::edit_button_clicked,
+            this,
+            &MainWindow::edit_button_clicked);
 
     connect(m_ui->add_item_button,
             &QPushButton::clicked,
@@ -71,6 +76,14 @@ MainWindow::MainWindow(QWidget* parent)
     }
 }
 
+void MainWindow::edit_button_clicked(const QModelIndex& index)
+{
+    m_add_edit_item_dialog->operation = AddEditItemDialog::Operation::EDIT;
+    m_add_edit_item_dialog->index = index;
+    m_add_edit_item_dialog->display_existing_content();
+    m_add_edit_item_dialog->show();
+}
+
 void MainWindow::delete_button_clicked(const QModelIndex& index) try
 {
     m_otp_list_model->delete_item(index);
@@ -88,8 +101,9 @@ OTP_DESKTOP_CATCH_ANY_EXCEPTION
 
 void MainWindow::add_item_button_clicked()
 {
-    m_add_item_dialog->clear_content();
-    m_add_item_dialog->show();
+    m_add_edit_item_dialog->operation = AddEditItemDialog::Operation::ADD;
+    m_add_edit_item_dialog->clear_content();
+    m_add_edit_item_dialog->show();
 }
 
 void MainWindow::change_password_button_clicked()

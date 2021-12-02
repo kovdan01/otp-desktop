@@ -55,7 +55,7 @@ static QRect create_show_hide_button_rect(const QStyleOptionViewItem& option)
     QRect show_hide_button_rect(option.rect);
     show_hide_button_rect.setX(show_hide_button_rect.x() + 455);
     show_hide_button_rect.setY(show_hide_button_rect.y() + 10);
-    show_hide_button_rect.setWidth(50);
+    show_hide_button_rect.setWidth(40);
     show_hide_button_rect.setHeight(30);
     return show_hide_button_rect;
 }
@@ -64,14 +64,34 @@ static QStyleOptionButton create_show_hide_button(const QRect& show_hide_button_
 {
     QStyleOptionButton show_hide_button;
     show_hide_button.rect = show_hide_button_rect;
-    show_hide_button.text = (visible ? QStringLiteral("Hide") : QStringLiteral("Show"));
+    show_hide_button.text = (visible ?
+                             QChar(0xD83D) + QChar(0xDC53) :  // eyeglasses unicode icon
+                             QChar(0xD83D) + QChar(0xDC41));  // eye unicode icon
     return show_hide_button;
+}
+
+static QRect create_edit_button_rect(const QStyleOptionViewItem& option)
+{
+    QRect edit_button_rect(option.rect);
+    edit_button_rect.setX(edit_button_rect.x() + 495);
+    edit_button_rect.setY(edit_button_rect.y() + 10);
+    edit_button_rect.setWidth(40);
+    edit_button_rect.setHeight(30);
+    return edit_button_rect;
+}
+
+static QStyleOptionButton create_edit_button(const QRect& edit_button_rect)
+{
+    QStyleOptionButton edit_button;
+    edit_button.rect = edit_button_rect;
+    edit_button.text = QChar(0xD83D) + QChar(0xDD8A);  // penc unicode icon
+    return edit_button;
 }
 
 static QRect create_delete_button_rect(const QStyleOptionViewItem& option)
 {
     QRect delete_button_rect(option.rect);
-    delete_button_rect.setX(delete_button_rect.x() + 505);
+    delete_button_rect.setX(delete_button_rect.x() + 535);
     delete_button_rect.setY(delete_button_rect.y() + 10);
     delete_button_rect.setRight(delete_button_rect.right() - 5);
     delete_button_rect.setHeight(30);
@@ -82,7 +102,7 @@ static QStyleOptionButton create_delete_button(const QRect& delete_button_rect)
 {
     QStyleOptionButton delete_button;
     delete_button.rect = delete_button_rect;
-    delete_button.text = QStringLiteral("Delete");
+    delete_button.text = QChar(0xD83D) + QChar(0xDDD1);  // trashcan unicode icon
     return delete_button;
 }
 
@@ -138,6 +158,11 @@ void OTPItemDelegate::paint(QPainter* painter, const QStyleOptionViewItem& optio
     delete_button.state = (m_delete_button_states.contains(row) ? m_delete_button_states.at(row) : QStyle::State_None ) | QStyle::State_Enabled;
     QApplication::style()->drawControl(QStyle::CE_PushButton, &delete_button, painter);
 
+    QRect edit_button_rect = create_edit_button_rect(option);
+    QStyleOptionButton edit_button = create_edit_button(edit_button_rect);
+    edit_button.state = (m_edit_button_states.contains(row) ? m_edit_button_states.at(row) : QStyle::State_None ) | QStyle::State_Enabled;
+    QApplication::style()->drawControl(QStyle::CE_PushButton, &edit_button, painter);
+
     unsigned period = totp.period();
     auto now = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     double progress = static_cast<double>(period - (now % period)) / period;
@@ -169,11 +194,13 @@ bool OTPItemDelegate::editorEvent(
         // ignoring other mouse event and reseting button's state
         m_show_hide_button_states[row] = QStyle::State_Raised;
         m_delete_button_states[row] = QStyle::State_Raised;
+        m_edit_button_states[row] = QStyle::State_Raised;
         return true;
     }
 
     QRect show_hide_button_rect = create_show_hide_button_rect(option);
     QRect delete_button_rect = create_delete_button_rect(option);
+    QRect edit_button_rect = create_edit_button_rect(option);
 
     QPoint pos = static_cast<QMouseEvent*>(event)->pos();
     if (delete_button_rect.contains(pos))
@@ -186,6 +213,22 @@ bool OTPItemDelegate::editorEvent(
         case QEvent::MouseButtonRelease:
             m_delete_button_states[row] = QStyle::State_Raised;
             emit this->delete_button_clicked(index);
+            break;
+        default:
+            assert(false);
+            break;
+        }
+    }
+    else if (edit_button_rect.contains(pos))
+    {
+        switch (event->type())
+        {
+        case QEvent::MouseButtonPress:
+            m_edit_button_states[row] = QStyle::State_Sunken;
+            break;
+        case QEvent::MouseButtonRelease:
+            m_edit_button_states[row] = QStyle::State_Raised;
+            emit this->edit_button_clicked(index);
             break;
         default:
             assert(false);
@@ -212,6 +255,7 @@ bool OTPItemDelegate::editorEvent(
     {
         m_show_hide_button_states[row] = QStyle::State_Raised;
         m_delete_button_states[row] = QStyle::State_Raised;
+        m_edit_button_states[row] = QStyle::State_Raised;
     }
 
     return true;

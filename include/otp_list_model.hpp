@@ -21,6 +21,7 @@ public:
 
     void add_item(TOTP item);
     void delete_item(const QModelIndex& index);
+    const TOTP* get_item(const QModelIndex& index);
     void change_visibility(const QModelIndex& index);
 
 private:
