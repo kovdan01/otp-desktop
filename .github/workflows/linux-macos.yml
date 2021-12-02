@@ -194,7 +194,9 @@ jobs:
         cd $ROOT_PATH
         wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
         chmod +x linuxdeploy-x86_64.AppImage
-        ./linuxdeploy-x86_64.AppImage -e $REPO_PATH/prefix/bin/otp-desktop --appdir $ROOT_PATH/otp-desktop.AppDir
+        wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+        chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+        ./linuxdeploy-x86_64.AppImage -e $REPO_PATH/prefix/bin/otp-desktop --appdir $ROOT_PATH/otp-desktop.AppDir --plugin qt
         wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
         chmod +x appimagetool-x86_64.AppImage
         ./appimagetool-x86_64.AppImage $ROOT_PATH/otp-desktop.AppDir
