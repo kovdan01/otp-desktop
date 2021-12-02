@@ -171,7 +171,6 @@ jobs:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        mkdir build
         export PKG_CONFIG_PATH="$REPO_PATH/build"
         "$CMAKE_TOOL_BINARY_PATH/cmake" \
             -G Ninja \
