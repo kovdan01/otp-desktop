@@ -42,7 +42,6 @@ jobs:
         sudo apt install build-essential -y
         sudo apt install libxml2 libxml2-dev libxml2-utils -y  # for libpskc
         sudo apt install libstdc++-10-dev gcc-10 g++-10 -y
-        sudo apt install qt5-qmake -y  # for AppImage creation
         sudo apt install pkg-config -y
         sudo apt install libgl-dev  # for Qt
         sudo apt install p7zip-full -y
@@ -163,7 +162,7 @@ jobs:
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable -o *:shared=True
         mkdir $REPO_PATH/build
-        conan install $REPO_PATH -if $REPO_PATH -o *:shared=True
+        conan install $REPO_PATH -if $REPO_PATH/build -g deploy -o *:shared=True
         mv $REPO_PATH/gcrypt.pc $REPO_PATH/libgcrypt.pc
 
     - name: Configure
@@ -197,6 +196,7 @@ jobs:
         chmod +x linuxdeploy-x86_64.AppImage
         wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
         chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+        export QMAKE=$REPO_PATH/build/qt/bin/qmake
         ./linuxdeploy-x86_64.AppImage -e $REPO_PATH/prefix/bin/otp-desktop --appdir $ROOT_PATH/otp-desktop.AppDir --plugin qt
         wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
         chmod +x appimagetool-x86_64.AppImage
