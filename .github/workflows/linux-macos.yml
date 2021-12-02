@@ -161,7 +161,7 @@ jobs:
         CXX: ${{ matrix.config.cxx }}
       run: |
         conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
-        mkdir $ROOT_PATH/otp-desktop.AppDir
+        mkdir -p $ROOT_PATH/otp-desktop.AppDir/usr
         conan install $REPO_PATH -if $ROOT_PATH/otp-desktop.AppDir -g deploy
         mv $ROOT_PATH/otp-desktop.AppDir/gcrypt.pc $ROOT_PATH/otp-desktop.AppDir/libgcrypt.pc
 
@@ -179,7 +179,7 @@ jobs:
             -B build \
             -D CMAKE_MODULE_PATH="$ROOT_PATH/otp-desktop.AppDir" \
             -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
-            -D CMAKE_INSTALL_PREFIX="$ROOT_PATH/otp-desktop.AppDir" \
+            -D CMAKE_INSTALL_PREFIX="$ROOT_PATH/otp-desktop.AppDir/usr" \
             -D CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
             -D CMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -D CMAKE_VERBOSE_MAKEFILE=ON
