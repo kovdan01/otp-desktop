@@ -22,9 +22,9 @@ jobs:
         config:
         - {
             os: "ubuntu-20.04",
-            prefix: "Linux",
+            prefix: "Linux x86_64",
             suffix: "",
-            artifact: "all-release-linux",
+            artifact: "linux-x86_64-release",
             build_type: "Release",
             cc: "gcc-10",
             cxx: "g++-10",
@@ -160,26 +160,25 @@ jobs:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable
-        mkdir build && cd build
-        conan install $REPO_PATH
-        mv gcrypt.pc libgcrypt.pc
-        cd $REPO_PATH
+        conan create conan/oath-toolkit oath-toolkit/2.6.7@user/stable -o *:shared=True
+        mkdir $REPO_PATH/build
+        conan install $REPO_PATH -if $REPO_PATH/build -g deploy -o *:shared=True
+        mv $REPO_PATH/build/gcrypt.pc $REPO_PATH/build/libgcrypt.pc
 
     - name: Configure
       env:
         CC: ${{ matrix.config.cc }}
         CXX: ${{ matrix.config.cxx }}
       run: |
-        export PKG_CONFIG_PATH="`pwd`/build"
+        export PKG_CONFIG_PATH="$REPO_PATH/build"
         "$CMAKE_TOOL_BINARY_PATH/cmake" \
             -G Ninja \
             -D CMAKE_MAKE_PROGRAM="$ROOT_PATH/$NINJA_TOOL_PATH/ninja" \
             -S . \
             -B build \
-            -D CMAKE_MODULE_PATH="`pwd`/build" \
+            -D CMAKE_MODULE_PATH="$REPO_PATH/build" \
             -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }} \
-            -D CMAKE_INSTALL_PREFIX="`pwd`/prefix" \
+            -D CMAKE_INSTALL_PREFIX="$REPO_PATH/prefix" \
             -D CMAKE_INSTALL_RPATH_USE_LINK_PATH=ON \
             -D CMAKE_EXPORT_COMPILE_COMMANDS=ON \
             -D CMAKE_VERBOSE_MAKEFILE=ON
@@ -188,12 +187,24 @@ jobs:
       run: |
         cmake --build build --target install
 
-    - name: Tar files
-      run: tar -cvf prefix.tar ./prefix
+    - name: Create AppImage
+      run: |
+        mkdir -p $ROOT_PATH/otp-desktop.AppDir/usr
+        cp -r deploy/* $ROOT_PATH/otp-desktop.AppDir/
+        cd $ROOT_PATH
+        wget https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage
+        chmod +x linuxdeploy-x86_64.AppImage
+        wget https://github.com/linuxdeploy/linuxdeploy-plugin-qt/releases/download/continuous/linuxdeploy-plugin-qt-x86_64.AppImage
+        chmod +x linuxdeploy-plugin-qt-x86_64.AppImage
+        export QMAKE=$REPO_PATH/build/qt/bin/qmake
+        ./linuxdeploy-x86_64.AppImage -e $REPO_PATH/prefix/bin/otp-desktop --appdir $ROOT_PATH/otp-desktop.AppDir --plugin qt
+        wget https://github.com/AppImage/AppImageKit/releases/download/13/appimagetool-x86_64.AppImage
+        chmod +x appimagetool-x86_64.AppImage
+        ./appimagetool-x86_64.AppImage $ROOT_PATH/otp-desktop.AppDir
 
     - name: Upload binaries
       if: ${{ matrix.config.artifact != '' }}
       uses: actions/upload-artifact@v2
       with:
-        path: ./prefix.tar
+        path: ${{ env.ROOT_PATH }}/otp-desktop-x86_64.AppImage
         name: ${{ matrix.config.artifact }}
